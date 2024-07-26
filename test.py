@@ -11,5 +11,5 @@ class test_class:
         return bmi  
     
 asan=test_class(60,170)
-a
+aasddssssssssssssssssssssssssssss
 bmi=asan.mbt()
