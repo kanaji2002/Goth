@@ -1,0 +1,10 @@
+<sports>
+  <sport>
+    <name>サッカー</name>
+    <orgin>イングランド</orgin>
+  </sport>
+  <sport>
+    <name>野球</name>
+    <orgin>アメリカ</orgin>
+  </sport>
+</sports>
