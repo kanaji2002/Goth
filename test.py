@@ -1,15 +1,306 @@
-class test_class:
-    def __init__(self,taijuu,sinntyou):
-        self.taijuu=taijuu
-        self.sinntyou=sinntyou
-        print("test_classのコンストラクタが呼ばれました")
+import os
+import sys
+import re
+import asyncio
+import aiohttp
+import threading
+import xml.etree.ElementTree as ET
+from PySide6.QtCore import *
+from PySide6.QtWidgets import *
+from PySide6.QtGui import *
+from PySide6.QtWebEngineWidgets import *
+from PySide6.QtWebEngineCore import QWebEngineProfile
+import yt_dlp
 
-    def mbt(self):
 
-        bmi = self.taijuu / (self.sinntyou/100)**2
-        print("BMI値は{:.1f}です".format(bmi))
-        return bmi  
+
+class AdblockX:
+    def __init__(self, page, adBlocker):
+        self.page = page
+        self.block_lists = []
+        self.tracker_lists = []
+        self.adBlocker = adBlocker
+        self.session = aiohttp.ClientSession()
+
+    async def fetch_lists(self, url):
+        try:
+            async with self.session.get(url) as response:
+                if response.status != 200:
+                    raise Exception(f"Failed to fetch lists: {response.status}")
+                return (await response.text()).split('\n')
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+
+    async def update_lists(self):
+        block_lists, tracker_lists = await asyncio.gather(
+            self.fetch_lists("https://easylist.to/easylist/easylist.txt"),
+            self.fetch_lists("https://easylist.to/easylist/easyprivacy.txt")
+        )
+        if block_lists and block_lists != self.block_lists:
+            self.block_lists = block_lists
+            await self.blockAds()
+        if tracker_lists and tracker_lists != self.tracker_lists:
+            self.tracker_lists = tracker_lists
+            await self.blockTrackers()
+
+    async def blockAds(self):
+        await self.adBlocker.setUrlFilterRules(self.block_lists)
+
+    async def blockTrackers(self):
+        await self.adBlocker.setUrlFilterRules(self.tracker_lists)
+
+    async def main(self):
+        await self.update_lists()
+
+    async def updateBlockedContent(self, event):
+        await self.update_lists()
+        
+
+
+class MainWindow(QMainWindow):
+    def __init__(self, *args, **kwargs):
+        super(MainWindow, self).__init__(*args, **kwargs)
+        
+        # タブウィジェットの設定
+        self.tabs = QTabWidget()
+        self.tabs.setDocumentMode(True)
+        self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
+        self.tabs.currentChanged.connect(self.current_tab_changed)
+        self.tabs.setTabsClosable(True)
+        self.tabs.setMovable(True)
+        self.setCentralWidget(self.tabs)
+        
+        # ステータスバーの設定
+        self.status = QStatusBar()
+        self.setStatusBar(self.status)
+        
+        # ナビゲーションツールバーの設定
+        navtb = QToolBar("Navigation")
+        self.addToolBar(navtb)
+        
+        # 新しいタブを開くボタンの設定
+        self.new_tab_button = QPushButton("New Tab")
+        self.new_tab_button.clicked.connect(self.add_new_tab)
+        navtb.addWidget(self.new_tab_button)
+        
+        # URLバーの設定
+        self.urlbar = QLineEdit()
+        self.urlbar.returnPressed.connect(self.navigate_to_url)
+        navtb.addWidget(self.urlbar)
+        
+        # 初期タブを追加
+        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
+        
+        self.show()
+
+
+    def add_new_tab(self, qurl=None, label="Blank"):
+        if qurl is None:
+            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')
+        browser = QWebEngineView()
+        browser.setUrl(qurl)
+        
+        i = self.tabs.addTab(browser, label)
+        self.tabs.setCurrentIndex(i)
+        browser.urlChanged.connect(lambda qurl, browser=browser: self.update_urlbar(qurl, browser))
+        browser.loadFinished.connect(lambda _, i=i, browser=browser: self.tabs.setTabText(i, browser.page().title()))
+
+
     
-asan=test_class(60,170)
-aasddssssssssssssssssssssssssssss
-bmi=asan.mbt()
+
+    def tab_open_doubleclick(self, i):
+        if i == -1:
+            print('yessssssssssssssss')
+            self.add_new_tab()
+
+    def current_tab_changed(self, i):
+        qurl = self.tabs.currentWidget().url()
+        self.update_urlbar(qurl, self.tabs.currentWidget())
+        self.update_title(self.tabs.currentWidget())
+
+    def close_current_tab(self, i):
+        if self.tabs.count() < 2:
+            return
+        self.tabs.removeTab(i)
+
+    def update_title(self, browser):
+        if browser != self.tabs.currentWidget():
+            return
+        # title = browser.page().title()
+        title=self.tabs.currentWidget().page().title()
+        formatted_title = title[:7] if len(title) > 7 else title.lanavijust(7)
+        print(formatted_title)
+        self.setWindowTitle("%s OrbBrowser" % formatted_title)
+        
+        
+        self.tabs.setTabText(self.tabs.currentIndex(), formatted_title)
+        if title is not None:
+            print(title)
+        else:
+            print("Noneだよ")
+        
+
+    def navigate_home(self):
+        self.tabs.currentWidget().setUrl(QUrl("https://kanaji2002.github.io/Goth-toppage/top_page.html"))
+
+    def navigate_to_url(self):
+        url = self.urlbar.text()
+        if "google.com/search?q=" in url:
+            self.tabs.currentWidget().setUrl(QUrl(url))
+        else:
+            google_search_url = "https://www.google.com/search?q=" + url
+            self.tabs.currentWidget().setUrl(QUrl(google_search_url))
+
+    def update_urlbar(self, q, browser=None):
+        if browser != self.tabs.currentWidget():
+            return
+        self.urlbar.setText(q.toString())
+        self.urlbar.setCursorPosition(0)
+
+    def extract_video_id(self, youtube_url):
+        video_id_pattern = re.compile(r'(?:youtube\.com/watch\?v=|youtu\.be/)([^&?/\s]+)')
+        match = video_id_pattern.search(youtube_url)
+        if match:
+            return match.group(1)
+        return None
+
+    def play_youtube_video(self):
+        youtube_url = self.youtube_id_bar.text()
+        video_id = self.extract_video_id(youtube_url)
+        if video_id:
+            embed_url = f"https://www.youtube.com/embed/{video_id}?autoplay=1&mute=1"
+            self.add_new_tab(QUrl(embed_url), 'YouTube Video')
+        else:
+            pass
+
+    def on_downloadRequested(self, download):
+        home_dir = os.path.expanduser("~")
+        download_dir = os.path.join(home_dir, "Downloads")
+        download_filename = download.suggestedFileName()
+        QWebEngineProfile.defaultProfile().setDownloadDirectory(download_dir)
+        download.setDownloadFileName(download_filename)
+        download.accept()
+        self.show_download_progress(download)
+
+    def show_download_progress(self, download):
+        progress_bar = QProgressBar(self.status)
+        self.status.addPermanentWidget(progress_bar)
+        download.downloadProgress.connect(lambda bytesReceived, bytesTotal, progress_bar=progress_bar: progress_bar.setValue(int((bytesReceived / bytesTotal) * 100) if bytesTotal > 0 else 0))
+        download.finished.connect(lambda progress_bar=progress_bar: progress_bar.deleteLater())
+
+    def update_progress_bar(self, progress_bar, bytesReceived, bytesTotal):
+        if bytesTotal > 0:
+            progress = (bytesReceived / bytesTotal) * 100
+            progress_bar.setValue(int(progress))
+
+    def remove_progress_bar(self, progress_bar):
+        self.status.removeWidget(progress_bar)
+        progress_bar.deleteLater()
+
+    def download_youtube_video(self):
+        youtube_url = self.youtube_download_bar.text()
+        video_id = self.extract_video_id(youtube_url)
+        if video_id:
+            threading.Thread(target=self.download_video, args=(video_id,)).start()
+        else:
+            pass
+
+    def download_video(self, video_id):
+        ydl_opts = {'format': 'mp4'}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([f'http://www.youtube.com/watch?v={video_id}'])
+
+    def add_shortcut(self):
+        current_tab = self.tabs.currentWidget()
+        if isinstance(current_tab, QWebEngineView):
+            url = current_tab.page().url().toString()
+            title = current_tab.page().title()
+            shortcut_button = QAction("", self)
+            shortcut_button.setText(current_tab.page().title())
+            shortcut_button.setToolTip(url)
+            shortcut_button.triggered.connect(lambda: self.tabs.currentWidget().setUrl(QUrl(url)))
+            self.vertical_bar.addAction(shortcut_button)
+            self.tabs.currentWidget().setUrl(QUrl(url))
+            self.save_shortcut_to_xml(title, url)
+
+    def save_shortcut_to_xml(self, title, url):
+        if not os.path.exists('shortcuts.xml'):
+            root = ET.Element("shortcuts")
+            tree = ET.ElementTree(root)
+            tree.write('shortcuts.xml')
+        tree = ET.parse('shortcuts.xml')
+        root = tree.getroot()
+        for shortcut in root.findall('shortcut'):
+            if shortcut.find('url').text == url:
+                print("Bookmark already exists.")
+                return
+        shortcut = ET.SubElement(root, 'shortcut')
+        ET.SubElement(shortcut, 'title').text = title
+        ET.SubElement(shortcut, 'url').text = url
+        tree.write('shortcuts.xml')
+
+    def load_shortcuts(self):
+        if not os.path.exists('shortcuts.xml'):
+            return
+        tree = ET.parse('shortcuts.xml')
+        root = tree.getroot()
+        added_urls = set()
+        for shortcut in root.findall('shortcut'):
+            title = shortcut.find('title').text
+            url = shortcut.find('url').text
+            if url not in added_urls:
+                self.add_website_shortcut(url, title)
+                added_urls.add(url)
+
+    def add_website_shortcut(self, url, name):
+        name = name[:23] + '...' if len(name) > 23 else name
+        shortcut_button = QAction(name, self)
+        shortcut_button.url = url
+        view = QWebEngineView()
+        view.load(QUrl(url))
+        view.iconChanged.connect(lambda icon, button=shortcut_button: button.setIcon(icon))
+        shortcut_button.triggered.connect(lambda: self.tabs.currentWidget().setUrl(QUrl(url)))
+        self.vertical_bar.addAction(shortcut_button)
+        self.save_shortcut_to_xml(name, url)
+
+    def create_database(self):
+        if not os.path.exists('shortcuts.xml'):
+            root = ET.Element("shortcuts")
+            tree = ET.ElementTree(root)
+            tree.write('shortcuts.xml')
+
+class BookmarkAction(QAction):
+    def __init__(self, title, parent):
+        super().__init__(title, parent)
+        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.customContextMenuRequested.connect(self.showContextMenu)
+        self.url = ""
+
+    def showContextMenu(self, point):
+        contextMenu = QMenu(self.parent())
+        deleteAction = QAction("削除", self)
+        deleteAction.triggered.connect(self.deleteBookmark)
+        contextMenu.addAction(deleteAction)
+        contextMenu.exec_(self.mapToGlobal(point))
+
+    def deleteBookmark(self):
+        tree = ET.parse('shortcuts.xml')
+        root = tree.getroot()
+        for shortcut in root.findall('shortcut'):
+            if shortcut.find('url').text == self.url:
+                root.remove(shortcut)
+                tree.write('shortcuts.xml')
+                break
+        self.parent().removeAction(self)
+
+
+
+
+
+app = QApplication(sys.argv)
+app.setApplicationName("OrbBrowser")
+window = MainWindow()
+window.create_database()
+window.show()
+app.exec()

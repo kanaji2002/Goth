@@ -1,2 +1,2 @@
 
-        navbar.addAction(back_btn)
+        super().__init__()
