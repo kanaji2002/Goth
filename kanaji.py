@@ -90,11 +90,9 @@ class MainWindow(QMainWindow):
             QTabBar::tab:selected, QTabBar::tab:hover { background: white; }
         """)
 
-        self.setCentralWidget(self.tabs)
         
 
-        # 初期タブを追加
-        # self.add_new_tab()
+        
         
         #kanajiｎ追加
 
@@ -107,6 +105,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
         self.status = QStatusBar()
         self.setStatusBar(self.status)
+        print(self.status)
         navtb = QToolBar("Navigation")
         self.addToolBar(navtb)
         self.load_shortcuts()
@@ -130,14 +129,14 @@ class MainWindow(QMainWindow):
         self.star_button.setStatusTip("Add shortcut to vertical bar")
         self.star_button.triggered.connect(self.add_shortcut)
         self.toolbar.addAction(self.star_button)
-        self.youtube_id_bar = QLineEdit()
-        self.youtube_id_bar.setPlaceholderText("YouTube Video ID")
-        navtb.addWidget(self.youtube_id_bar)
-        self.youtube_id_bar.returnPressed.connect(self.play_youtube_video)
-        self.youtube_download_bar = QLineEdit()
-        self.youtube_download_bar.setPlaceholderText("youtube download")
-        navtb.addWidget(self.youtube_download_bar)
-        self.youtube_download_bar.returnPressed.connect(self.download_youtube_video)
+        # self.youtube_id_bar = QLineEdit()
+        # self.youtube_id_bar.setPlaceholderText("YouTube Video ID")
+        # navtb.addWidget(self.youtube_id_bar)
+        # self.youtube_id_bar.returnPressed.connect(self.play_youtube_video)
+        # self.youtube_download_bar = QLineEdit()
+        # self.youtube_download_bar.setPlaceholderText("youtube download")
+        # navtb.addWidget(self.youtube_download_bar)
+        # self.youtube_download_bar.returnPressed.connect(self.download_youtube_video)
         home_btn.triggered.connect(self.navigate_home)
         navtb.addAction(home_btn)
         navtb.addSeparator()
@@ -159,6 +158,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("")
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+
       
 
     def add_new_tab(self, qurl=None, label="ブランク"):
@@ -198,9 +198,9 @@ class MainWindow(QMainWindow):
             return
         # title = browser.page().title()
         title=self.tabs.currentWidget().page().title()
-        formatted_title = title[:7] if len(title) > 7 else title.lanavijust(7)
+        formatted_title = title[:7] if len(title) > 7 else title.ljust(7)
         print(formatted_title)
-        self.setWindowTitle("%s OrbBrowser" % formatted_title)
+        self.setWindowTitle("%s Goth" % formatted_title)
         
         
         self.tabs.setTabText(self.tabs.currentIndex(), formatted_title)
@@ -227,6 +227,7 @@ class MainWindow(QMainWindow):
         self.urlbar.setText(q.toString())
         self.urlbar.setCursorPosition(0)
 
+    # 使わない
     def extract_video_id(self, youtube_url):
         video_id_pattern = re.compile(r'(?:youtube\.com/watch\?v=|youtu\.be/)([^&?/\s]+)')
         match = video_id_pattern.search(youtube_url)
@@ -234,6 +235,7 @@ class MainWindow(QMainWindow):
             return match.group(1)
         return None
 
+    # 使わない
     def play_youtube_video(self):
         youtube_url = self.youtube_id_bar.text()
         video_id = self.extract_video_id(youtube_url)
@@ -243,6 +245,7 @@ class MainWindow(QMainWindow):
         else:
             pass
 
+    # 使わない
     def on_downloadRequested(self, download):
         home_dir = os.path.expanduser("~")
         download_dir = os.path.join(home_dir, "Downloads")
@@ -364,7 +367,7 @@ class BookmarkAction(QAction):
         self.parent().removeAction(self)
 
 app = QApplication(sys.argv)
-app.setApplicationName("OrbBrowser")
+app.setApplicationName("Goth")
 window = MainWindow()
 window.create_database()
 window.show()
