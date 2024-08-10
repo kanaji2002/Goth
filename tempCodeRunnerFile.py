@@ -1,2 +1,2 @@
 
-        super().__init__()
+handler = Handler()

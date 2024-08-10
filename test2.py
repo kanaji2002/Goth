@@ -1,31 +1,25 @@
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QPushButton, QWidget
 
-class Button(QObject):
-    # シグナルの定義（引数として文字列を持つ）
-    clicked = Signal(str)
+app = QApplication([])
 
-    def __init__(self):
-        super().__init__()
+window = QWidget()
+main_layout = QVBoxLayout()
 
-    def click(self):
-        # シグナルの発行
-        self.clicked.emit("Button was clicked!")
+# サブレイアウトを作成
+sub_layout = QHBoxLayout()
+button1 = QPushButton('Button 1')
+button2 = QPushButton('Button 2')
+sub_layout.addWidget(button1)
+sub_layout.addWidget(button2)
 
-class Handler(QObject):
-    def __init__(self):
-        super().__init__()
+# サブレイアウトをメインレイアウトに追加
+main_layout.addLayout(sub_layout)
 
-    # スロットの定義
-    @Slot(str)
-    def on_button_clicked(self, message):
-        print(message)
+# 別のボタンをメインレイアウトに追加
+button3 = QPushButton('Button 3')
+main_layout.addWidget(button3)
 
-# オブジェクトの作成
-button = Button()
-handler = Handler()
+window.setLayout(main_layout)
+window.show()
 
-# シグナルとスロットの接続
-button.clicked.connect(handler.on_button_clicked)
-
-# ボタンがクリックされたことをシミュレート
-button.click()
+app.exec()
