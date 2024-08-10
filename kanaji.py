@@ -65,17 +65,46 @@ class MainWindow(QMainWindow):
         self.vertical_bar = QToolBar("Vertical Bar")
         self.vertical_bar.setOrientation(Qt.Orientation.Vertical)
         self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.vertical_bar)
-        self.tabs = QTabWidget()
+        self.tabs = QTabWidget(self)##元々はselfなかった
         self.tabs.setDocumentMode(True)
         self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.currentChanged.connect(self.current_tab_changed)
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
+        self.setCentralWidget(self.tabs)
+
+
+                # タブバーのカスタマイズ
+        tab_bar = self.tabs.tabBar()
+      # mouseMoveEventをカスタマイズ
+        def custom_mouse_move_event(event):
+            # 元のmouseMoveEventを呼び出す
+            QTabBar.mouseMoveEvent(tab_bar, event)
+
+            # マウスの左ボタンが押されているか確認
+            if event.buttons() & Qt.LeftButton:
+                # タブの位置を取得
+                tab_index = tab_bar.tabAt(event.pos())
+                if tab_index != -1:
+                    # タブのドラッグを開始
+                    global_pos = tab_bar.mapToGlobal(event.pos())
+                    # タブが上にドラッグされているか確認
+                    if global_pos.y() < tab_bar.mapToGlobal(tab_bar.rect().topLeft()).y() - 20:
+                        # タブを削除
+                        self.tabs.removeTab(tab_index)
+
+        # カスタムイベントを設定
+        tab_bar.mouseMoveEvent = custom_mouse_move_event
+
+
+        
+        
+        
 
            # ボタンを作成してタブバーの右上に配置
-        self.add_tab_button = QPushButton("+aaaaaaaaa")
-        self.add_tab_button.clicked.connect(self.add_new_tab)
-        self.add_tab_button.setStyleSheet("background-color: white; color: pink;")
+        self.add_tab_button = QPushButton("newタブ")
+        self.add_tab_button.clicked.connect(self.add_new_tab())
+        self.add_tab_button.setStyleSheet("background-color: white; color: black;")
 
         
         
@@ -83,7 +112,7 @@ class MainWindow(QMainWindow):
         
         # スタイルシートを適用
         self.tabs.setStyleSheet("""
-            QTabBar::tear { width: 0; height: 0; }
+            QTabBar::tear { width: 0; height: 0; } 
             QTabWidget::pane { border-top: 2px solid #C2C7CB; position: absolute; top: -0.5em; }
             QTabBar { qproperty-drawBase: 0; left: 5px; } 
             QTabBar::tab { background: lightgray; border: 1px solid #C4C4C3; border-bottom-color: #C2C7CB; border-top-left-radius: 4px; border-top-right-radius: 4px; padding: 5px; }
@@ -94,15 +123,10 @@ class MainWindow(QMainWindow):
 
         
         
-        #kanajiｎ追加
-
-        
-
-        self.add_tab_button.setStyleSheet("background-color: gray; color: pink;")
+      
+        self.add_tab_button.setStyleSheet("background-color: gray; color: white;")
         self.add_tab_button.clicked.connect(self.add_new_tab)
-        self.tabs.setCornerWidget(self.add_tab_button, Qt.TopRightCorner)
         self.tabs.tabCloseRequested.connect(self.close_current_tab)
-        self.setCentralWidget(self.tabs)
         self.status = QStatusBar()
         self.setStatusBar(self.status)
         print(self.status)
@@ -158,13 +182,20 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("")
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+        
+
+
+
 
       
 
     def add_new_tab(self, qurl=None, label="ブランク"):
         if qurl is None:
             qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')
+        elif qurl is False:
+            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')            
         browser = QWebEngineView()
+        print(qurl)
         browser.setUrl(qurl)
         
         i = self.tabs.addTab(browser, label)
@@ -174,13 +205,40 @@ class MainWindow(QMainWindow):
         browser.loadFinished.connect(lambda _, i=i, : self.tabs.setTabText(i, browser.page().title()[:7] if len(browser.page().title()) > 7 else browser.page().title().ljust(7)
         ))
         browser.iconChanged.connect(lambda _, i=i, browser=browser: self.tabs.setTabIcon(i, browser.icon()))
-        
-
     
+        
+    
+        
+    
+    
+
+        
+#そのタブのアイコンを押したら，dialogが出てきて（出てこなくてもいい），関連するタブを削除する
+    # def related_delete(event):
+    #     if self.tabs.count() < 2:
+    #         return
+        
+    #             # 元のmouseMoveEventを呼び出す
+    #     QTabBar.mouseMoveEvent(tab_bar, event)
+
+    #     if event.buttons() & Qt.LeftButton:
+    #         tab_index = tab_bar.tabAt(event.pos())
+    #         if tab_index != -1:
+    #             # タブのドラッグを開始
+    #             global_pos = tab_bar.mapToGlobal(event.pos())
+    #             if global_pos.y() < tab_bar.mapToGlobal(tab_bar.rect().topLeft()).y() - 20:
+    #                 # 上にドラッグされているとき、タブを削除
+        
+    #     self.tabs.removeTab(i)
+    #     self.tabs.removeTab(i+1)
+        
+    # tab_bar.mouseMoveEvent = related_delete
+
+ 
+        
 
     def tab_open_doubleclick(self, i):
         if i == -1:
-            print('yessssssssssssssss')
             self.add_new_tab()
 
     def current_tab_changed(self, i):

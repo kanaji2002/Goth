@@ -1,1 +1,1 @@
-navigate_home
+current_tab_changed
