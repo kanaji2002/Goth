@@ -348,7 +348,7 @@ class BookmarkAction(QAction):
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
         self.url = ""
-
+#
     def showContextMenu(self, point):
         contextMenu = QMenu(self.parent())
         deleteAction = QAction("削除", self)
