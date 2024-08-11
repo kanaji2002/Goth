@@ -324,6 +324,7 @@ class MainWindow(QMainWindow):
         if bytesTotal > 0:
             progress = (bytesReceived / bytesTotal) * 100
             progress_bar.setValue(int(progress))
+   #使わない
 
     def remove_progress_bar(self, progress_bar):
         self.status.removeWidget(progress_bar)
