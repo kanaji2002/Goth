@@ -313,6 +313,7 @@ class MainWindow(QMainWindow):
         download.accept()
         self.show_download_progress(download)
 
+    # 使わない
     def show_download_progress(self, download):
         progress_bar = QProgressBar(self.status)
         self.status.addPermanentWidget(progress_bar)
