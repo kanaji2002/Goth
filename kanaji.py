@@ -319,7 +319,7 @@ class MainWindow(QMainWindow):
         self.status.addPermanentWidget(progress_bar)
         download.downloadProgress.connect(lambda bytesReceived, bytesTotal, progress_bar=progress_bar: progress_bar.setValue(int((bytesReceived / bytesTotal) * 100) if bytesTotal > 0 else 0))
         download.finished.connect(lambda progress_bar=progress_bar: progress_bar.deleteLater())
-
+   #使わない
     def update_progress_bar(self, progress_bar, bytesReceived, bytesTotal):
         if bytesTotal > 0:
             progress = (bytesReceived / bytesTotal) * 100
