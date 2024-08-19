@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
         stop_btn.setStatusTip("Stop loading current page")
         stop_btn.triggered.connect(lambda: self.tabs.currentWidget().stop())
         navtb.addAction(stop_btn)
-        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
+        # self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
         self.vertical_bar = QToolBar("Vertical Bar")
         self.vertical_bar.setOrientation(Qt.Orientation.Vertical)
         self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.vertical_bar)
@@ -406,7 +406,7 @@ class BookmarkAction(QAction):
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
         self.url = ""
-
+#aaa
     def showContextMenu(self, point):
         contextMenu = QMenu(self.parent())
         deleteAction = QAction("削除", self)

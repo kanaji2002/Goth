@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Start Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        .shortcut-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .shortcut {
+            text-decoration: none;
+            color: white;
+            background-color: #007BFF;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+        .shortcut:hover {
+            background-color: #0056b3;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-container input {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .form-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+        }
+        .form-container button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="shortcut-container" id="shortcutContainer">
+        <!-- ショートカットリンクがここに追加されます -->
+    </div>
+    <div class="form-container">
+        <input type="text" id="shortcutName" placeholder="ショートカットの名前">
+        <input type="text" id="shortcutURL" placeholder="URL">
+        <button onclick="addShortcut()">追加</button>
+    </div>
+
+    <script>
+        function addShortcut() {
+            const name = document.getElementById('shortcutName').value;
+            const url = document.getElementById('shortcutURL').value;
+
+            if (name && url) {
+                const container = document.getElementById('shortcutContainer');
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.textContent = name;
+                a.className = 'shortcut';
+                a.target = '_blank';
+
+                container.appendChild(a);
+
+                document.getElementById('shortcutName').value = '';
+                document.getElementById('shortcutURL').value = '';
+            } else {
+                alert('名前とURLを入力してください。');
+            }
+        }
+    </script>
+</body>
+</html>
