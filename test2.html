@@ -19,6 +19,24 @@
     </style>
 </head>
 <body>
+
+    <cr-button id="addShortcut" tabindex="0" noink="" aria-label="ショートカットを追加" title="ショートカットを追加" role="button" aria-disabled="false"><template shadowrootmode="open"><!---->
+        <div id="background"></div>
+        <slot id="prefixIcon" name="prefix-icon">
+        </slot>
+        <span id="content"><slot></slot></span>
+        <slot id="suffixIcon" name="suffix-icon">
+        </slot>
+        <div id="hoverBackground" part="hoverBackground"></div></template>
+            <div id="addShortcutIconContainer" class="tile-icon">
+              <div id="addShortcutIcon" draggable="false"></div>
+            </div>
+            <div class="tile-title">
+              <span><!--?lit$85830751482$-->ショートカットを追加</span>
+            </div>
+          </cr-button>
+
+          
     <div id="button1" class="button-overlay">Button 1</div>
     <div id="button2" class="button-overlay">Button 2</div>
     <div id="message" style="display:none; color:blue;">ボタンがクリックされました！</div>
