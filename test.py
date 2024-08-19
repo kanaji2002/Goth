@@ -13,7 +13,7 @@ from PySide6.QtWebEngineCore import QWebEngineProfile
 import yt_dlp
 
 
-#s
+#sa
 class AdblockX:
     def __init__(self, page, adBlocker):
         self.page = page
