@@ -56,9 +56,13 @@ class AdblockX:
     async def updateBlockedContent(self, event):
         await self.update_lists()
         
+        
+
+        
 
 
 class MainWindow(QMainWindow):
+    tab_id_title_list = []
     
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -69,37 +73,15 @@ class MainWindow(QMainWindow):
         self.tabs.setDocumentMode(True)
         self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.currentChanged.connect(self.current_tab_changed)
+        # self.tabs.currentChanged.connect(self.tab_id_print)
+
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
         self.setCentralWidget(self.tabs)
-
-
-                # タブバーのカスタマイズ
-        tab_bar = self.tabs.tabBar()
-      # mouseMoveEventをカスタマイズ
-        def custom_mouse_move_event(event):
-            # 元のmouseMoveEventを呼び出す
-            QTabBar.mouseMoveEvent(tab_bar, event)
-
-            # マウスの左ボタンが押されているか確認
-            if event.buttons() & Qt.LeftButton:
-                # タブの位置を取得
-                tab_index = tab_bar.tabAt(event.pos())
-                if tab_index != -1:
-                    # タブのドラッグを開始
-                    global_pos = tab_bar.mapToGlobal(event.pos())
-                    # タブが上にドラッグされているか確認
-                    if global_pos.y() < tab_bar.mapToGlobal(tab_bar.rect().topLeft()).y() - 20:
-                        # タブを削除
-                        self.tabs.removeTab(tab_index)
-
-        # カスタムイベントを設定
-        tab_bar.mouseMoveEvent = custom_mouse_move_event
-
+        
 
         
-        
-        
+    
 
            # ボタンを作成してタブバーの右上に配置
         self.add_tab_button = QPushButton("newタブ")
@@ -110,23 +92,19 @@ class MainWindow(QMainWindow):
         
         self.tabs.setCornerWidget(self.add_tab_button, Qt.TopRightCorner)
         
-        # スタイルシートを適用
-        self.tabs.setStyleSheet("""
-            QTabBar::tear { width: 0; height: 0; } 
-            QTabWidget::pane { border-top: 2px solid #C2C7CB; position: absolute; top: -0.5em; }
-            QTabBar { qproperty-drawBase: 0; left: 5px; } 
-            QTabBar::tab { background: lightgray; border: 1px solid #C4C4C3; border-bottom-color: #C2C7CB; border-top-left-radius: 4px; border-top-right-radius: 4px; padding: 5px; }
-            QTabBar::tab:selected, QTabBar::tab:hover { background: white; }
-        """)
 
-        
 
-        
         
       
         self.add_tab_button.setStyleSheet("background-color: gray; color: white;")
         self.add_tab_button.clicked.connect(self.add_new_tab)
-        self.tabs.tabCloseRequested.connect(self.close_current_tab)
+        # self.tabs.tabCloseRequested.connect(self.close_current_tab)
+
+        
+        self.tabs.tabCloseRequested.connect(self.close_tab)
+        
+        
+        
         self.status = QStatusBar()
         self.setStatusBar(self.status)
         print(self.status)
@@ -178,11 +156,52 @@ class MainWindow(QMainWindow):
         self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.vertical_bar)
         self.status = QStatusBar()
         self.setStatusBar(self.status)
-        self.show()
+        
         self.setWindowTitle("")
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+        self.left_button_pressed = False
+        # self.show()
         
+
+ 
+
+        
+                # タブバーのイベントフィルタを設定
+        self.tabs.tabBar().installEventFilter(self)
+
+        # タブが閉じられたときのシグナルを接続
+        self.tabs.tabCloseRequested.connect(self.close_tab)
+        self.left_button_pressed = False
+        
+        
+        
+   
+        
+        # self.show()
+
+    # def mousePressEvent(self, event):
+    #     if event.button() == Qt.LeftButton:
+    #         print("Left mouse button pressed at", event.pos())
+
+    # def mouseReleaseEvent(self, event):
+    #     if event.button() == Qt.LeftButton:
+    #         print("Left mouse button released at", event.pos())
+
+
+
+    def eventFilter(self, obj, event):
+        if obj == self.tabs.tabBar():
+            if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+                print("Left mouse button pressed at", event.pos())
+                self.left_button_pressed = True
+            elif event.type() == QEvent.MouseButtonRelease:
+                self.left_button_pressed = False
+        return super().eventFilter(obj, event)
+
+    def close_tab(self, i):
+        if self.left_button_pressed and self.tabs.count() > 1:
+            self.tabs.removeTab(i)
 
 
 
@@ -190,52 +209,60 @@ class MainWindow(QMainWindow):
       
 
     def add_new_tab(self, qurl=None, label="ブランク"):
-        if qurl is None:
-            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')
-        elif qurl is False:
-            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')            
+        
+        # if qurl is None:
+        #     qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')
+        # elif qurl is False:
+        qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')            
         browser = QWebEngineView()
         print(qurl)
         browser.setUrl(qurl)
         
         i = self.tabs.addTab(browser, label)
+        print(f'{i}番目のタブを開いたよ')
         self.tabs.setCurrentIndex(i)
+        new_title = browser.page().title()
+        print(f"New tab opened: ID={i}, Title={new_title}")
+        
+        # タイトル変更時に on_title_changed を呼び出す
+        browser.titleChanged.connect(lambda new_title, i=i: self.on_title_changed(new_title, i))
+        
+        # タブのIDとタイトルをリストに追加
+        self.tab_id_title_list.append({'id': i, 'title': new_title})
+        
         browser.urlChanged.connect(lambda qurl, browser=browser: self.update_urlbar(qurl, browser))
         
-        browser.loadFinished.connect(lambda _, i=i, : self.tabs.setTabText(i, browser.page().title()[:7] if len(browser.page().title()) > 7 else browser.page().title().ljust(7)
-        ))
+        browser.loadFinished.connect(lambda _, i=i, : self.tabs.setTabText(i, browser.page().title()[:7] if len(browser.page().title()) > 7 else browser.page().title().ljust(7)))
         browser.iconChanged.connect(lambda _, i=i, browser=browser: self.tabs.setTabIcon(i, browser.icon()))
-    
         
-    
+    def on_title_changed(self, new_title, i):
+        # タイトルが変更されたらリストを更新
+        for tab_info in self.tab_id_title_list:
+            if tab_info['id'] == i:
+                tab_info['title'] = new_title
+                break
+
+        # self.tab_id_title_list.append({i: new_title})
+        print(f"Tab updated: ID={i}, Title={new_title}")
+        print(f"Current tab list: {self.tab_id_title_list}")
         
     
     
 
         
 #そのタブのアイコンを押したら，dialogが出てきて（出てこなくてもいい），関連するタブを削除する
-    # def related_delete(event):
-    #     if self.tabs.count() < 2:
-    #         return
-        
-    #             # 元のmouseMoveEventを呼び出す
-    #     QTabBar.mouseMoveEvent(tab_bar, event)
 
-    #     if event.buttons() & Qt.LeftButton:
-    #         tab_index = tab_bar.tabAt(event.pos())
-    #         if tab_index != -1:
-    #             # タブのドラッグを開始
-    #             global_pos = tab_bar.mapToGlobal(event.pos())
-    #             if global_pos.y() < tab_bar.mapToGlobal(tab_bar.rect().topLeft()).y() - 20:
-    #                 # 上にドラッグされているとき、タブを削除
-        
-    #     self.tabs.removeTab(i)
-    #     self.tabs.removeTab(i+1)
-        
-    # tab_bar.mouseMoveEvent = related_delete
-
- 
-        
+    #my test code
+    def tab_id_print(self,i):
+        return 
+        print(f'now open tab is {i}')
+  
+    # タブを開く度に，リストに，辞書型で，タブのidとそのタブのタイトルを保存しておく関数
+    # def tab_id_save(self, i,browser, tab_id_list):
+    #         # Add the tab ID and title to the tab_id_list
+    #     tab_id = self.tabs.indexOf(browser)
+    #     tab_title = browser.page().title()
+    #     tab_id_list.append({tab_id: tab_title})
 
     def tab_open_doubleclick(self, i):
         if i == -1:
@@ -249,6 +276,8 @@ class MainWindow(QMainWindow):
     def close_current_tab(self, i):
         if self.tabs.count() < 2:
             return
+        
+        
         self.tabs.removeTab(i)
 
     def update_title(self, browser):
@@ -280,6 +309,7 @@ class MainWindow(QMainWindow):
             self.tabs.currentWidget().setUrl(QUrl(google_search_url))
 
     def update_urlbar(self, q, browser=None):
+        # 現在開いているタブのみみ受け付ける．
         if browser != self.tabs.currentWidget():
             return
         self.urlbar.setText(q.toString())

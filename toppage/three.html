@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blender Model with OrbitControls</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+        // シーン、カメラ、レンダラーを作成
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // カメラの位置を設定
+        camera.position.set(0, 0, 7);
+
+        // OrbitControlsを追加
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enablePan = false;  // パン操作を無効にする
+        controls.enableZoom = false; // ズーム操作を無効にする
+
+        // GLTFローダーを使用してモデルを読み込む
+        const loader = new THREE.GLTFLoader();
+        loader.load('desk.glb', function (gltf) {
+            const model = gltf.scene;
+            scene.add(model);
+            model.position.set(0, 0, 0);
+
+            // レンダリングループ
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // カメラコントロールを更新
+                controls.update();
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+        // 照明を追加
+        const light = new THREE.AmbientLight(0xffffff); // 明るいホワイトライト
+        scene.add(light);
+    </script>
+</body>
+</html>
