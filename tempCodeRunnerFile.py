@@ -1,2 +1,2 @@
 
-                    if event.button() == Qt.LeftButton:
+            print("not pushed left")

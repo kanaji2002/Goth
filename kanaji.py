@@ -79,6 +79,8 @@ class MainWindow(QMainWindow):
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
         self.setCentralWidget(self.tabs)
+
+        self.setup_shortcuts()
         
 
         
@@ -99,9 +101,8 @@ class MainWindow(QMainWindow):
       
         self.add_tab_button.setStyleSheet("background-color: gray; color: white;")
         self.add_tab_button.clicked.connect(self.add_new_tab)
-        # self.tabs.tabCloseRequested.connect(self.close_current_tab)
 
-        self.left_button_pressed = False
+        
         self.tabs.tabCloseRequested.connect(self.close_tab)
 
         
@@ -159,50 +160,68 @@ class MainWindow(QMainWindow):
         # self.show()
         
 
- 
 
+    
+    def close_tab(self, i):
         
-                # タブバーのイベントフィルタを設定
-        self.tabs.tabBar().installEventFilter(self)
-
-        # タブが閉じられたときのシグナルを接続
-        # self.tabs.tabCloseRequested.connect(self.close_tab)
-        # self.left_button_pressed = False
-        
-        
-        
-   
-        
-        # self.show()
-
-    # def mousePressEvent(self, event):
-    #     if event.button() == Qt.LeftButton:
-    #         print("Left mouse button pressed at", event.pos())
-
-    # def mouseReleaseEvent(self, event):
-    #     if event.button() == Qt.LeftButton:
-    #         print("Left mouse button released at", event.pos())
-
-
-
-    def eventFilter(self, obj, event):
-        if obj == self.tabs.tabBar():
-            if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
-                print("Left mouse button pressed at", event.pos())
-                self.left_button_pressed = True
-            elif event.type() == QEvent.MouseButtonRelease:
-                self.left_button_pressed = False
-        return self.left_button_pressed
-
-    def close_tab(self, i,eventFilter):
-        print("close_tabss")
-        if eventFilter and self.tabs.count() > 1:
+        if self.tabs.count() > 1:
             print("pushed left")
             self.tabs.removeTab(i)
 
         else :
-            self.tabs.removeTab(i)
+            # self.tabs.removeTab(i)
             print("not pushed left")
+
+    def setup_shortcuts(self):
+        # Ctrl+W で現在のタブを閉じる
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        close_tab_shortcut.activated.connect(self.close_current_tab)
+
+        # Ctrl+Space で現在のタブを閉じる
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+Space"), self)
+        close_tab_shortcut.activated.connect(self.close_two_tab)
+
+        # Ctrl+T で新しいタブを開く
+        new_tab_shortcut = QShortcut(QKeySequence("Ctrl+T"), self)
+        new_tab_shortcut.activated.connect(self.add_new_tab)
+
+        # Ctrl+Q でアプリケーションを終了する
+        quit_shortcut = QShortcut(QKeySequence("Ctrl+Q"), self)
+        quit_shortcut.activated.connect(self.close)
+
+        # Alt+LeftArrow で前のタブに移動する
+        prev_tab_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Left), self)
+        prev_tab_shortcut.activated.connect(self.prev_tab)
+
+        # Alt+RightArrow で次のタブに移動する
+        next_tab_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Right), self)
+        next_tab_shortcut.activated.connect(self.next_tab)
+
+    def close_current_tab(self):
+        current_index = self.tabs.currentIndex()
+        if current_index != -1:
+            self.tabs.removeTab(current_index)
+
+    def close_two_tab(self):
+        current_index = self.tabs.currentIndex()
+        if current_index != -1:
+            self.tabs.removeTab(current_index)
+            self.tabs.removeTab(current_index)
+
+    
+
+    # def add_new_tab(self):
+    #     self.addTab(f"New Tab {self.tabs.count() + 1}", f"This is new tab {self.tabs.count() + 1}")
+
+    def prev_tab(self):
+        current_index = self.tabs.currentIndex()
+        if current_index > 0:
+            self.tabs.setCurrentIndex(current_index - 1)
+
+    def next_tab(self):
+        current_index = self.tabs.currentIndex()
+        if current_index < self.tabs.count() - 1:
+            self.tabs.setCurrentIndex(current_index + 1)
 
 
 
@@ -244,7 +263,7 @@ class MainWindow(QMainWindow):
                 break
 
         # self.tab_id_title_list.append({i: new_title})
-        print(f"Tab updated: ID={i}, Title={new_title}")
+        #print(f"Tab updated: ID={i}, Title={new_title}")
         print(f"Current tab list: {self.tab_id_title_list}")
         
     
@@ -274,12 +293,8 @@ class MainWindow(QMainWindow):
         self.update_urlbar(qurl, self.tabs.currentWidget())
         self.update_title(self.tabs.currentWidget())
 
-    def close_current_tab(self, i):
-        if self.tabs.count() < 2:
-            return
-        
-        
-        self.tabs.removeTab(i)
+
+
 
     def update_title(self, browser):
         if browser != self.tabs.currentWidget():
