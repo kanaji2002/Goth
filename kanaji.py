@@ -64,6 +64,7 @@ class AdblockX:
 class MainWindow(QMainWindow):
     tab_id_title_list = []
     
+    
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.vertical_bar = QToolBar("Vertical Bar")
@@ -73,7 +74,7 @@ class MainWindow(QMainWindow):
         self.tabs.setDocumentMode(True)
         self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.currentChanged.connect(self.current_tab_changed)
-        # self.tabs.currentChanged.connect(self.tab_id_print)
+        
 
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
@@ -100,8 +101,9 @@ class MainWindow(QMainWindow):
         self.add_tab_button.clicked.connect(self.add_new_tab)
         # self.tabs.tabCloseRequested.connect(self.close_current_tab)
 
-        
+        self.left_button_pressed = False
         self.tabs.tabCloseRequested.connect(self.close_tab)
+
         
         
         
@@ -131,14 +133,7 @@ class MainWindow(QMainWindow):
         self.star_button.setStatusTip("Add shortcut to vertical bar")
         self.star_button.triggered.connect(self.add_shortcut)
         self.toolbar.addAction(self.star_button)
-        # self.youtube_id_bar = QLineEdit()
-        # self.youtube_id_bar.setPlaceholderText("YouTube Video ID")
-        # navtb.addWidget(self.youtube_id_bar)
-        # self.youtube_id_bar.returnPressed.connect(self.play_youtube_video)
-        # self.youtube_download_bar = QLineEdit()
-        # self.youtube_download_bar.setPlaceholderText("youtube download")
-        # navtb.addWidget(self.youtube_download_bar)
-        # self.youtube_download_bar.returnPressed.connect(self.download_youtube_video)
+
         home_btn.triggered.connect(self.navigate_home)
         navtb.addAction(home_btn)
         navtb.addSeparator()
@@ -160,7 +155,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("")
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
-        self.left_button_pressed = False
+        
         # self.show()
         
 
@@ -171,8 +166,8 @@ class MainWindow(QMainWindow):
         self.tabs.tabBar().installEventFilter(self)
 
         # タブが閉じられたときのシグナルを接続
-        self.tabs.tabCloseRequested.connect(self.close_tab)
-        self.left_button_pressed = False
+        # self.tabs.tabCloseRequested.connect(self.close_tab)
+        # self.left_button_pressed = False
         
         
         
@@ -197,11 +192,17 @@ class MainWindow(QMainWindow):
                 self.left_button_pressed = True
             elif event.type() == QEvent.MouseButtonRelease:
                 self.left_button_pressed = False
-        return super().eventFilter(obj, event)
+        return self.left_button_pressed
 
-    def close_tab(self, i):
-        if self.left_button_pressed and self.tabs.count() > 1:
+    def close_tab(self, i,eventFilter):
+        print("close_tabss")
+        if eventFilter and self.tabs.count() > 1:
+            print("pushed left")
             self.tabs.removeTab(i)
+
+        else :
+            self.tabs.removeTab(i)
+            print("not pushed left")
 
 
 
