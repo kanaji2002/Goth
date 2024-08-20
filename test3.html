@@ -7,6 +7,21 @@
     <style>
         body { margin: 0; font-family: Arial, sans-serif; }
         .button-overlay {
+            margin :400px;
+            padding: 10px;
+            background-color: rgba(122, 115, 115, 0.199);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin: 10px;
+            width: 170px;
+            text-align: auto;
+            margin: 0 auto;
+        }
+
+        .button-overlay-defo {
+            
             padding: 10px;
             background-color: rgba(122, 115, 115, 0.199);
             border: 1px solid #ccc;
@@ -14,10 +29,15 @@
             cursor: pointer;
             display: flex;
             margin: 10px;
+
             width: 170px;
             text-align: auto;
             margin: 0 auto;
         }
+        .upper{
+            margin : 100px;
+        }
+
         
         .tile-icon {
             display: inline-block;
@@ -53,6 +73,7 @@
         .dialog-header {
             font-size: 18px;
             margin-bottom: 10px;
+           
         }
         .dialog-content {
             margin-bottom: 20px;
@@ -63,13 +84,23 @@
         .dialog-footer button {
             margin-left: 10px;
         }
+        .flex-block {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            top: 70%;
+            left: 50%;
+        }
     </style>
 </head>
 <body>
 
-    <!-- ショートカットを追加ボタン -->
-    <div id="addShortcut" class="button-overlay">
-        <div class="tile-title">ショートカットを追加</div>
+<div class="upper">
+        <!-- ショートカットを追加ボタン -->
+        <div id="addShortcut" class="button-overlay-defo">
+            <div class="tile-title">ショートカットを追加</div>
+        </div>
+
     </div>
 
     <!-- ダイアログ -->
@@ -129,8 +160,10 @@
             const newShortcut = document.createElement('div');
             newShortcut.className = 'button-overlay';
             newShortcut.innerHTML = `
+     
                 <div class="tile-icon" style="background-image: url('${faviconUrl}');"></div>
                 <div class="tile-title">${name}</div>
+               
             `;
             newShortcut.addEventListener('click', () => {
                 window.open(url, '_blank');
