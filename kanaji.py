@@ -12,6 +12,11 @@ from PySide6.QtWebEngineWidgets import *
 from PySide6.QtWebEngineCore import QWebEngineProfile
 import yt_dlp
 
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
+from PySide6.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+
+
+
 #類似度
 from difflib import SequenceMatcher
 
@@ -61,16 +66,21 @@ class AdblockX:
         
         
 
-        
+class CustomWebEnginePage(QWebEnginePage):
+    def acceptNavigationRequest(self, url, _type, is_main_frame):
+        # 外部リンクを同じQWebEngineView内で開くように設定
+        if _type == QWebEnginePage.NavigationTypeLinkClicked:
+            self.setUrl(url)
+            return False
+        return super().acceptNavigationRequest(url, _type, is_main_frame)
+
 
 
 class MainWindow(QMainWindow):
     # tab_id_title_list = []
     # tab_id_title_list.append({'id': 0, 'title': 'Home'})
     
-    tab_id_title_list=[
-        {'id': 0, 'title': 'Home'}
-    ]
+    tab_id_title_list=[]
 
     
     
@@ -91,6 +101,23 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
 
         self.setup_shortcuts()
+        
+        ## 3Dモデルの表示
+                # QWebEngineViewの設定
+                        # ウィジェットとレイアウトの設定
+        central_widget = QWidget(self)
+        layout = QVBoxLayout(central_widget)
+        self.setCentralWidget(central_widget)
+        self.web_view = QWebEngineView()
+        self.web_page = CustomWebEnginePage(self.web_view)
+        self.web_view.setPage(self.web_page)
+        layout.addWidget(self.web_view)
+        
+        
+
+        # ローカルHTMLファイルまたはURLを設定
+        self.web_view.setUrl("toppage/top_page.html")  # ここにファイルのパスを指定
+
         
 
         
