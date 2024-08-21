@@ -181,6 +181,9 @@ class MainWindow(QMainWindow):
         # else :
         #     # self.tabs.removeTab(i)
         #     print("not pushed left")
+        
+        print ("-------close_tab end--------")
+        print(f"Current tab list: {self.tab_id_title_list}")
 
     def setup_shortcuts(self):
         # Ctrl+W で現在のタブを閉じる
@@ -226,15 +229,16 @@ class MainWindow(QMainWindow):
     def close_related_tab(self):
         print(f'!!!!!!現在格納されているリスト！！{self.tab_id_title_list}')
         current_index = self.tabs.currentIndex()
+        
         delete_tab_index_list = []
         
         if current_index != -1 and self.tabs.count() > 1:
             print(f'現在のタブは{current_index}')   
-            print(f'現在のタブの数は{self.tabs.count()}')
+            # print(f'現在のタブの数は{self.tabs.count()}')
         
-            tem_list=self.tab_id_title_list
-            tem=tem_list[current_index]['title']
-            print(f'現在のタブのtitleは{tem}')
+            
+            # tem=self.tab_id_title_list[current_index]['title']
+            # print(f'現在のタブのtitleは{tem}')
             
 
             for i in range(len(self.tab_id_title_list)):
@@ -251,11 +255,27 @@ class MainWindow(QMainWindow):
 
                 
                 # 関連するタブのindexをリストに追加していき，最後に，まとめて削除
-            for i in reversed(delete_tab_index_list):
+            for delete_tab_index in reversed(delete_tab_index_list):
+                
                 if self.tabs.count() > 1:
-                    print(f'{i}番目のタブを削除します.タイトルは，{self.tab_id_title_list[i]["title"]}です．')
-                    self.tabs.removeTab(i)
-                    delete_tab_index_list.remove(i)
+                    print(f'{delete_tab_index}番目のタブを削除します.タイトルは，{self.tab_id_title_list[delete_tab_index]["title"]}です．')
+                    # ここでのi
+                    # print(delete_tab_index_list.index(delete_tab_index))
+                    # self.tab_id_title_list.remove(self.tab_id_title_list[delete_tab_index_list.index(delete_tab_index)])
+                    del self.tab_id_title_list[delete_tab_index]
+                    self.tabs.removeTab(delete_tab_index)
+                    delete_tab_index_list.remove(delete_tab_index)
+            tempo_list=[]
+            for index, value in enumerate(self.tab_id_title_list):
+                updated_list={'id': index, 'title': value['title']}
+                tempo_list.append(updated_list)
+                
+            self.tab_id_title_list=tempo_list
+            print(f'更新後のリストは{self.tab_id_title_list}')
+                
+                
+
+
         print ("-------close_related_tab end--------")
         print(f"Current tab list: {self.tab_id_title_list}")
         
@@ -303,14 +323,28 @@ class MainWindow(QMainWindow):
             
         # タイトルとIDのリストを更新
         found = False
+        
+        
         for tab_info in self.tab_id_title_list:
+            
+            
             if tab_info['id'] == i:
                 tab_info['title'] = new_title
                 found = True
                 break
         
         if not found:
-            self.tab_id_title_list.append({'id': i, 'title': new_title})
+            # 空いているIDを探す
+            available_id = None
+            for idx in range(self.tabs.count()):
+                if not any(tab_info['id'] == idx for tab_info in self.tab_id_title_list):
+                    available_id = idx
+                    break
+            
+            if available_id is not None:
+                self.tab_id_title_list.insert(available_id, {'id': available_id, 'title': new_title})
+            else:
+                self.tab_id_title_list.append({'id': i, 'title': new_title})
 
         print(f"New tab opened: ID={i}, Title={new_title}")
         
@@ -324,6 +358,10 @@ class MainWindow(QMainWindow):
         
         browser.loadFinished.connect(lambda _, i=i, : self.tabs.setTabText(i, browser.page().title()[:7] if len(browser.page().title()) > 7 else browser.page().title().ljust(7)))
         browser.iconChanged.connect(lambda _, i=i, browser=browser: self.tabs.setTabIcon(i, browser.icon()))
+        
+        
+        print ("-------add_new_tab end--------")
+        print(f"Current tab list: {self.tab_id_title_list}")
         
     def on_title_changed(self, new_title, i):
         # タイトルが変更されたらリストを更新
