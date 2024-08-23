@@ -220,6 +220,7 @@ body { margin: 0; font-family: Arial, sans-serif; }
 <body>
 
 <div>
+    <!-- <a href="https://www.youtube.com/">YouTube</a> -->
     <div id="container">
         <input type="text" id="searchBox" placeholder="Search...">
         <select id="engineSelect">
@@ -246,20 +247,31 @@ body { margin: 0; font-family: Arial, sans-serif; }
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // カメラの位置を設定
-        camera.position.set(0, 0, 7);
+
+
+
+        
+        camera.position.set(6, 7, 10);
 
         // OrbitControlsを追加
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enablePan = false;  // パン操作を無効にする
-        controls.enableZoom = false; // ズーム操作を無効にする
+        controls.enableZoom = true; // ズーム操作を無効にする
+
+
+                // 高解像度でレンダリング
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
         // GLTFローダーを使用してモデルを読み込む
         const loader = new THREE.GLTFLoader();
-        loader.load('bed_kannsei.glb', function (gltf) {
+        //desk.glb -> bed_kannsei.glb
+        loader.load('../parts/bed_and_desk.glb', function (gltf) {
             const model = gltf.scene;
             scene.add(model);
-            model.position.set(0, 0, 0);
+            model.position.set(0, -2, 3);
+            model.scale.set(5, 5, 5);
 
             // レンダリングループ
             function animate() {
@@ -275,24 +287,60 @@ body { margin: 0; font-family: Arial, sans-serif; }
             console.error(error);
         });
 
+// 座標のテスト
+        const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        box.position.set(5 , 18, 5);
+        scene.add(box);
+      
+
         // 照明を追加
-        const light = new THREE.AmbientLight(0xffffff); // 明るいホワイトライト
-        scene.add(light);
+        //全体的に明るくする，全方位から均等に照明を当てる．
+        // const ambientLight = new THREE.AmbientLight(0xffffe0, 0.5); // 弱めのアンビエントライト
+        // scene.add(ambientLight);
 
-        // より明るいライトに変更
-        const brightLight = new THREE.AmbientLight(0xffff22, 2); // より明るいホワイトライト
-        scene.add(brightLight);
+        //一か所から照らす　太陽光
+        const directionalLight = new THREE.DirectionalLight(0xffffe0, 0.4); // 強めのディレクショナルライト
+        directionalLight.position.set(5, 18, 5);
+        scene.add(directionalLight);
 
-        // HTML要素を3D空間に追加
-        const div = document.createElement('div');
-        div.style.width = '200px';
-        div.style.height = '100px';
-        div.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-        div.innerHTML = '<p style="color: white; text-align: center;">Hello World</p>';
+        const hemisphereLight = new THREE.HemisphereLight(0xffffe0, 0x000000, 0.5)
 
+                       // 新しいライトを追加
+        const newLight = new THREE.PointLight(0xffffff, 0.8); // 明るさや色を適宜調整してください
+        newLight.position.set(directionalLight.position.x -2, directionalLight.position.z-3, directionalLight.position.y-20);
+        scene.add(newLight);
+        
+        // const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+        // const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        // const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        // box.position.set(directionalLight.position.x +2 , directionalLight.position.z, directionalLight.position.y -30);
+        // scene.add(box);
+
+        // 矩形光源を作成
+        // new THREE.RectAreaLight(色, 光の強さ, 幅, 高さ)
+        // const light = new THREE.RectAreaLight(0xFFFFe0, 5.0, 2, 20);
+        // scene.add(light);
+
+
+        const pointLight = new THREE.PointLight(0xffffe0, 1, 100);
+        pointLight.position.set(-5, -5, 5);
+        scene.add(pointLight);
         const cssObject = new THREE.CSS3DObject(div);
-        cssObject.position.set(0, 1, 0); // 3D空間内の位置を設定
+        cssObject.position.set(0, 1, -1        ); // 3D空間内の位置を設定
         scene.add(cssObject);
+
+
+
+
+
+
+
+
+
+        
+        renderer.setPixelRatio(window.devicePixelRatio);
 
         document.getElementById('searchBox').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
