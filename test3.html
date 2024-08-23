@@ -1,193 +1,77 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ショートカット追加</title>
+    <title>Three.js Clickable Model</title>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; }
-        .button-overlay {
-            margin :400px;
-            padding: 10px;
-            background-color: rgba(122, 115, 115, 0.199);
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            display: inline-block;
-            margin: 10px;
-            width: 170px;
-            text-align: auto;
-            margin: 0 auto;
-        }
-
-        .button-overlay-defo {
-            
-            padding: 10px;
-            background-color: rgba(122, 115, 115, 0.199);
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            display: block;
-            margin: 10px;
-
-            width: 170px;
-            text-align: auto;
-            margin: 0 auto;
-        }
-        .upper{
-            margin : 100px;
-        }
-
-        
-        .tile-icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-color: #ffffff;
-            border-radius: 4px;
-            margin-right: 8px;
-            background-size: cover;
-            background-repeat: no-repeat;
-        }
-        .tile-title {
-            display: inline-block;
-            vertical-align: middle;
-        }
-        #dialog {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #fff;
-            border: 1px solid #ccc;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            padding: 20px;
-            border-radius: 8px;
-            width: 300px;
-        }
-        #dialog.active {
-            display: block;
-        }
-        .dialog-header {
-            font-size: 18px;
-            margin-bottom: 10px;
-           
-        }
-        .dialog-content {
-            margin-bottom: 20px;
-        }
-        .dialog-footer {
-            text-align: right;
-        }
-        .dialog-footer button {
-            margin-left: 10px;
-        }
-        .flex-block {
-            display: flex;
-            align-items: center;
-            position: absolute;
-            top: 70%;
-            left: 50%;
-        }
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-<div class="upper">
-        <!-- ショートカットを追加ボタン -->
-        <div id="addShortcut" class="button-overlay-defo">
-            <div class="tile-title">ショートカットを追加</div>
-        </div>
+<script>
+// シーン、カメラ、レンダラーを作成
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-    </div>
+// カメラ位置設定
+camera.position.set(0, 0, 5);
 
-    <!-- ダイアログ -->
-    <div id="dialog">
-        <div class="dialog-header">ショートカットを追加</div>
-        <div class="dialog-content">
-            <label for="shortcutName">名前:</label>
-            <input type="text" id="shortcutName" style="width: 100%; margin-bottom: 10px;">
-            <label for="shortcutUrl">URL:</label>
-            <input type="url" id="shortcutUrl" style="width: 100%;">
-        </div>
-        <div class="dialog-footer">
-            <button id="cancelButton">キャンセル</button>
-            <button id="addButton" disabled>完了</button>
-        </div>
-    </div>
+// 照明を追加
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
 
-    <script>
-        const addShortcutButton = document.getElementById('addShortcut');
-        const dialog = document.getElementById('dialog');
-        const cancelButton = document.getElementById('cancelButton');
-        const addButton = document.getElementById('addButton');
-        const shortcutNameInput = document.getElementById('shortcutName');
-        const shortcutUrlInput = document.getElementById('shortcutUrl');
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(1, 1, 1).normalize();
+scene.add(directionalLight);
 
-        // ショートカット追加ボタンをクリックした時にダイアログを表示
-        addShortcutButton.addEventListener('click', () => {
-            dialog.classList.add('active');
-        });
+// クリック可能なオブジェクトの作成
+const geometry = new THREE.BoxGeometry(1, 1, 1);
+const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+const clickableObject = new THREE.Mesh(geometry, material);
+scene.add(clickableObject);
 
-        // キャンセルボタンでダイアログを閉じる
-        cancelButton.addEventListener('click', () => {
-            dialog.classList.remove('active');
-        });
+// オービットコントロールを追加
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-        // 入力フィールドに値があるかどうかをチェックして、完了ボタンを有効化
-        shortcutNameInput.addEventListener('input', checkFormValidity);
-        shortcutUrlInput.addEventListener('input', checkFormValidity);
+// レイキャスターとマウスベクトルの設定
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
 
-        function checkFormValidity() {
-            if (shortcutNameInput.value && shortcutUrlInput.value) {
-                addButton.disabled = false;
-            } else {
-                addButton.disabled = true;
-            }
-        }
+function onMouseClick(event) {
+    // マウスのスクリーン座標を取得
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-        // 完了ボタンをクリックしてショートカットを作成
-        addButton.addEventListener('click', async () => {
-            const name = shortcutNameInput.value;
-            const url = shortcutUrlInput.value;
+    // レイをキャスト
+    raycaster.setFromCamera(mouse, camera);
 
-            // ファビコンを取得する
-            const faviconUrl = await getFavicon(url);
+    // クリックされたオブジェクトを取得
+    const intersects = raycaster.intersectObject(clickableObject);
 
-            // 新しいショートカットを作成して、ページに追加
-            const newShortcut = document.createElement('div');
-            newShortcut.className = 'button-overlay';
-            newShortcut.innerHTML = `
-     
-                <div class="tile-icon" style="background-image: url('${faviconUrl}');"></div>
-                <div class="tile-title">${name}</div>
-               
-            `;
-            newShortcut.addEventListener('click', () => {
-                window.open(url, '_blank');
-            });
-
-            document.body.appendChild(newShortcut);
-
-            // ダイアログを閉じて、入力フィールドをクリア
-            dialog.classList.remove('active');
-            shortcutNameInput.value = '';
-            shortcutUrlInput.value = '';
-            addButton.disabled = true;
-        });
-
-        async function getFavicon(siteUrl) {
-    try {
-        const url = new URL(siteUrl);
-        const faviconUrl = `https://www.google.com/s2/favicons?domain=${url.hostname}`;
-        return faviconUrl; // 直接ファビコンURLを返す
-    } catch (error) {
-        return 'default-icon.png'; // エラーが発生した場合のデフォルトアイコン
+    if (intersects.length > 0) {
+        // オブジェクトがクリックされたらリンクに飛ぶ
+        window.open('https://qiita.com/emadurandal/items/3a8db7bc61438245654d', '_blank');
     }
 }
-    </script>
 
+document.addEventListener('click', onMouseClick, false);
+
+// アニメーションループ
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+animate();
+</script>
 </body>
 </html>
