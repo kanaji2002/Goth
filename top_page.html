@@ -268,18 +268,12 @@ body { margin: 0; font-family: Arial, sans-serif; }
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
-
-
-
-
-        
         camera.position.set(6, 7, 10);
 
         // OrbitControlsを追加
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enablePan = false;  // パン操作を無効にする
         controls.enableZoom = true; // ズーム操作を無効にする
-
 
                 // 高解像度でレンダリング
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -353,11 +347,7 @@ body { margin: 0; font-family: Arial, sans-serif; }
         cssObject.position.set(0, 1, -1        ); // 3D空間内の位置を設定
         scene.add(cssObject);
 
-
-        
         renderer.setPixelRatio(window.devicePixelRatio);
-
-
 
         // マウスイベントリスナーを追加
         let isDragging = false;

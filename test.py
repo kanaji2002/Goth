@@ -13,9 +13,9 @@ from PySide6.QtWebEngineCore import QWebEngineProfile
 import yt_dlp
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
+from PySide6.QtCore import Qt, QPoint
 
-
-
+ 
 
 #類似度
 from difflib import SequenceMatcher
@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
     
     tab_id_title_list=[]
 
-    
+    ## ここに，3Dモデルを格納するオブジェクトを追加する．
     
     
     def __init__(self, *args, **kwargs):
@@ -148,8 +148,16 @@ class MainWindow(QMainWindow):
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolbar)
         self.star_button = QAction("☆", self)
         self.star_button.setStatusTip("Add shortcut to vertical bar")
-        self.star_button.triggered.connect(self.add_shortcut)
+        self.star_button.setCheckable(True)  # チェック可能に設定
+        self.star_button.triggered.connect(self.toggle_star)
+
+
+        self.delete_star_button=QAction("XX", self)
+        self.delete_star_button.setStatusTip("delete shortcut from vertical bar")
+        self.delete_star_button.triggered.connect(self.remove_bookmark)
+        
         self.toolbar.addAction(self.star_button)
+        self.toolbar.addAction(self.delete_star_button)
 
         home_btn.triggered.connect(self.navigate_home)
         navtb.addAction(home_btn)
@@ -157,15 +165,15 @@ class MainWindow(QMainWindow):
         self.urlbar = QLineEdit()
         self.urlbar.returnPressed.connect(self.navigate_to_url)
         navtb.addWidget(self.urlbar)
-        QWebEngineProfile.defaultProfile().downloadRequested.connect(self.on_downloadRequested)
+        # QWebEngineProfile.defaultProfile().downloadRequested.connect(self.on_downloadRequested)
         stop_btn = QAction("X", self)
         stop_btn.setStatusTip("Stop loading current page")
         stop_btn.triggered.connect(lambda: self.tabs.currentWidget().stop())
         navtb.addAction(stop_btn)
         # self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
-        self.vertical_bar = QToolBar("Vertical Bar")
-        self.vertical_bar.setOrientation(Qt.Orientation.Vertical)
-        self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.vertical_bar)
+        self.delete_bookmark = QToolBar("delete bookmark")
+        self.delete_bookmark.setOrientation(Qt.Orientation.Vertical)
+        self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.delete_bookmark)
         self.status = QStatusBar()
         self.setStatusBar(self.status)
         
@@ -175,6 +183,7 @@ class MainWindow(QMainWindow):
         # self.delete_tab_index_list=[]
         
         # self.show()
+        # self.load_shortcuts()
         
 
 
@@ -312,12 +321,8 @@ class MainWindow(QMainWindow):
       
 
     def add_new_tab(self, qurl=None, label="ブランク"):
-        
-        # ローカルのファイルパスを指定
-        local_path = "/top_page.html"
-        qurl = QUrl.fromLocalFile(local_path)
-        
-        # qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')            
+        self.update_star_icon()
+        qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')            
         browser = QWebEngineView()
         print(qurl)
         browser.setUrl(qurl)
@@ -374,6 +379,7 @@ class MainWindow(QMainWindow):
         print(f"Current tab list: {self.tab_id_title_list}")
         
     def on_title_changed(self, new_title, i):
+        self.update_star_icon()
         # タイトルが変更されたらリストを更新
         for tab_info in self.tab_id_title_list:
             if tab_info['id'] == i:
@@ -405,11 +411,13 @@ class MainWindow(QMainWindow):
     def tab_open_doubleclick(self, i):
         if i == -1:
             self.add_new_tab()
+            self.update_star_icon()
 
     def current_tab_changed(self, i):
         qurl = self.tabs.currentWidget().url()
         self.update_urlbar(qurl, self.tabs.currentWidget())
         self.update_title(self.tabs.currentWidget())
+        self.update_star_icon()
 
 
 
@@ -432,10 +440,7 @@ class MainWindow(QMainWindow):
         
 
     def navigate_home(self):
-                # ローカルのファイルパスを指定
-        local_path = "/top_page.html"
-        qurl = QUrl.fromLocalFile(local_path)
-        self.tabs.currentWidget().setUrl(qurl)
+        self.tabs.currentWidget().setUrl(QUrl("https://kanaji2002.github.io/Goth-toppage/top_page.html"))
 
     def navigate_to_url(self):
         url = self.urlbar.text()
@@ -452,63 +457,40 @@ class MainWindow(QMainWindow):
         self.urlbar.setText(q.toString())
         self.urlbar.setCursorPosition(0)
 
-    # 使わない
-    def extract_video_id(self, youtube_url):
-        video_id_pattern = re.compile(r'(?:youtube\.com/watch\?v=|youtu\.be/)([^&?/\s]+)')
-        match = video_id_pattern.search(youtube_url)
-        if match:
-            return match.group(1)
-        return None
 
-    # 使わない
-    def play_youtube_video(self):
-        youtube_url = self.youtube_id_bar.text()
-        video_id = self.extract_video_id(youtube_url)
-        if video_id:
-            embed_url = f"https://www.youtube.com/embed/{video_id}?autoplay=1&mute=1"
-            self.add_new_tab(QUrl(embed_url), 'YouTube Video')
-        else:
-            pass
+    
+    
+    def toggle_star(self):
+        """☆ボタンをクリックするたびに☆と★を切り替える"""
+        current_tab = self.tabs.currentWidget()
+        if isinstance(current_tab, QWebEngineView):
+            url = current_tab.page().url().toString()
+            if self.star_button.isChecked():
+                self.star_button.setText("★")
+                self.add_shortcut()
+            else:
+                self.star_button.setText("☆")
+                self.remove_bookmark()
 
-    # 使わない
-    def on_downloadRequested(self, download):
-        home_dir = os.path.expanduser("~")
-        download_dir = os.path.join(home_dir, "Downloads")
-        download_filename = download.suggestedFileName()
-        QWebEngineProfile.defaultProfile().setDownloadDirectory(download_dir)
-        download.setDownloadFileName(download_filename)
-        download.accept()
-        self.show_download_progress(download)
+    def update_star_icon(self):
+        """現在のタブのURLがブックマークされているかどうかで☆と★を切り替える"""
+        current_tab = self.tabs.currentWidget()
+        if isinstance(current_tab, QWebEngineView):
+            url = current_tab.page().url().toString()
+            tree = ET.parse('shortcuts.xml')
+            root = tree.getroot()
+            bookmarked = any(shortcut.find('url').text == url for shortcut in root.findall('shortcut'))
+            if bookmarked:
+                self.star_button.setChecked(True)
+                self.star_button.setText("★")
+            else:
+                self.star_button.setChecked(False)
+                self.star_button.setText("☆")
 
-    # 使わない
-    def show_download_progress(self, download):
-        progress_bar = QProgressBar(self.status)
-        self.status.addPermanentWidget(progress_bar)
-        download.downloadProgress.connect(lambda bytesReceived, bytesTotal, progress_bar=progress_bar: progress_bar.setValue(int((bytesReceived / bytesTotal) * 100) if bytesTotal > 0 else 0))
-        download.finished.connect(lambda progress_bar=progress_bar: progress_bar.deleteLater())
-   #使わない
-    def update_progress_bar(self, progress_bar, bytesReceived, bytesTotal):
-        if bytesTotal > 0:
-            progress = (bytesReceived / bytesTotal) * 100
-            progress_bar.setValue(int(progress))
-   #使わない
-
-    def remove_progress_bar(self, progress_bar):
-        self.status.removeWidget(progress_bar)
-        progress_bar.deleteLater()
-
-    def download_youtube_video(self):
-        youtube_url = self.youtube_download_bar.text()
-        video_id = self.extract_video_id(youtube_url)
-        if video_id:
-            threading.Thread(target=self.download_video, args=(video_id,)).start()
-        else:
-            pass
-
-    def download_video(self, video_id):
-        ydl_opts = {'format': 'mp4'}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([f'http://www.youtube.com/watch?v={video_id}'])
+    # def force_star(self):
+    #     current_tab = self.tabs.currentWidget()
+    #     if isinstance(current_tab, QWebEngineView):
+    #         self.star_button.setText("★")
 
     def add_shortcut(self):
         current_tab = self.tabs.currentWidget()
@@ -518,26 +500,56 @@ class MainWindow(QMainWindow):
             shortcut_button = QAction("", self)
             shortcut_button.setText(current_tab.page().title())
             shortcut_button.setToolTip(url)
+            
             shortcut_button.triggered.connect(lambda: self.tabs.currentWidget().setUrl(QUrl(url)))
+            
             self.vertical_bar.addAction(shortcut_button)
-            self.tabs.currentWidget().setUrl(QUrl(url))
+            # self.tabs.currentWidget().setUrl(QUrl(url))
             self.save_shortcut_to_xml(title, url)
 
     def save_shortcut_to_xml(self, title, url):
+        # self.force_star()
         if not os.path.exists('shortcuts.xml'):
             root = ET.Element("shortcuts")
             tree = ET.ElementTree(root)
             tree.write('shortcuts.xml')
+            
         tree = ET.parse('shortcuts.xml')
         root = tree.getroot()
         for shortcut in root.findall('shortcut'):
             if shortcut.find('url').text == url:
+                
                 print("Bookmark already exists.")
+            
                 return
         shortcut = ET.SubElement(root, 'shortcut')
         ET.SubElement(shortcut, 'title').text = title
         ET.SubElement(shortcut, 'url').text = url
         tree.write('shortcuts.xml')
+
+    def remove_bookmark(self):
+        current_tab = self.tabs.currentWidget()
+        # current_tabが， QWebEngineViewのインスタンスであるかどうかを確認
+        # つまり，アクティブなタブ達（現在のタブ達）が，Webページにあるかどうかを確認
+        if isinstance(current_tab, QWebEngineView):
+            url = current_tab.page().url().toString()
+        for action in self.vertical_bar.actions():
+            if hasattr(action, 'url') and action.url == url:
+                self.vertical_bar.removeAction(action)
+                self.delete_shortcut_from_xml(url)
+                break
+
+    def delete_shortcut_from_xml(self,url):
+        if not os.path.exists('shortcuts.xml'):
+            return
+        tree = ET.parse('shortcuts.xml')
+        root = tree.getroot()
+        for shortcut in root.findall('shortcut'):
+            if shortcut.find('url').text == url:
+                root.remove(shortcut)
+                tree.write('shortcuts.xml')
+                break
+    
 
     def load_shortcuts(self):
         if not os.path.exists('shortcuts.xml'):
@@ -560,6 +572,7 @@ class MainWindow(QMainWindow):
         view.load(QUrl(url))
         view.iconChanged.connect(lambda icon, button=shortcut_button: button.setIcon(icon))
         shortcut_button.triggered.connect(lambda: self.tabs.currentWidget().setUrl(QUrl(url)))
+        shortcut_button.triggered.connect(self.update_star_icon)  # ショートカットを開く時に☆を更新
         self.vertical_bar.addAction(shortcut_button)
         self.save_shortcut_to_xml(name, url)
 
@@ -568,34 +581,13 @@ class MainWindow(QMainWindow):
             root = ET.Element("shortcuts")
             tree = ET.ElementTree(root)
             tree.write('shortcuts.xml')
-
-class BookmarkAction(QAction):
-    def __init__(self, title, parent):
-        super().__init__(title, parent)
-        self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.customContextMenuRequested.connect(self.showContextMenu)
-        self.url = ""
-#aaa
-    def showContextMenu(self, point):
-        contextMenu = QMenu(self.parent())
-        deleteAction = QAction("削除", self)
-        deleteAction.triggered.connect(self.deleteBookmark)
-        contextMenu.addAction(deleteAction)
-        contextMenu.exec_(self.mapToGlobal(point))
-
-    def deleteBookmark(self):
-        tree = ET.parse('shortcuts.xml')
-        root = tree.getroot()
-        for shortcut in root.findall('shortcut'):
-            if shortcut.find('url').text == self.url:
-                root.remove(shortcut)
-                tree.write('shortcuts.xml')
-                break
-        self.parent().removeAction(self)
+           
 
 app = QApplication(sys.argv)
 app.setApplicationName("Goth")
 window = MainWindow()
 window.create_database()
+# ページを描画
 window.show()
+# マウス等のイベントを監視
 app.exec()
