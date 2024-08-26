@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
     
     tab_id_title_list=[]
 
-    
+    ## ここに，3Dモデルを格納するオブジェクトを追加する．
     
     
     def __init__(self, *args, **kwargs):
