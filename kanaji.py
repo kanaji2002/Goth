@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
         # self.delete_star_button.triggered.connect(self.remove_bookmark)
         
         self.toolbar.addAction(self.star_button)
-        self.toolbar.addAction(self.delete_star_button)
+        # self.toolbar.addAction(self.delete_star_button)
 
         home_btn.triggered.connect(self.navigate_home)
         navtb.addAction(home_btn)
