@@ -21,7 +21,16 @@ from PySide6.QtCore import Qt, QPoint
 from difflib import SequenceMatcher
 
 
+from PySide6.QtWebChannel import QWebChannel
+import sys
 
+# Python object to handle communication with JavaScript
+class LinkHandler(QObject):
+    @Slot(str)
+    def handleLinkClick(self, url):
+        print(f"Link clicked: {url}")
+        # Add a new tab with the clicked URL
+        window.add_new_tab(QUrl(url), "New Tab")
 class AdblockX:
     def __init__(self, page, adBlocker):
         self.page = page
@@ -82,7 +91,7 @@ class MainWindow(QMainWindow):
         self.vertical_bar = QToolBar("Vertical Bar")
         self.vertical_bar.setOrientation(Qt.Orientation.Vertical)
         self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.vertical_bar)
-        self.tabs = QTabWidget(self)##元々はselfなかった
+        self.tabs = QTabWidget(self)
         self.tabs.setDocumentMode(True)
         self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.currentChanged.connect(self.current_tab_changed)
@@ -94,12 +103,6 @@ class MainWindow(QMainWindow):
 
         self.setup_shortcuts()
 
-        
-        
-
-
-
-        
     
 
            # ボタンを作成してタブバーの右上に配置
@@ -110,9 +113,6 @@ class MainWindow(QMainWindow):
         
         
         self.tabs.setCornerWidget(self.add_tab_button, Qt.TopRightCorner)
-        
-
-
         
       
         self.add_tab_button.setStyleSheet("background-color: gray; color: white;")
@@ -151,10 +151,10 @@ class MainWindow(QMainWindow):
         self.star_button.setCheckable(True)  # チェック可能に設定
         self.star_button.triggered.connect(self.toggle_star)
 
-
-        self.delete_star_button=QAction("XX", self)
-        self.delete_star_button.setStatusTip("delete shortcut from vertical bar")
-        self.delete_star_button.triggered.connect(self.remove_bookmark)
+            
+        # self.delete_star_button=QAction("XX", self)
+        # self.delete_star_button.setStatusTip("delete shortcut from vertical bar")
+        # self.delete_star_button.triggered.connect(self.remove_bookmark)
         
         self.toolbar.addAction(self.star_button)
         self.toolbar.addAction(self.delete_star_button)
@@ -183,8 +183,16 @@ class MainWindow(QMainWindow):
         # self.delete_tab_index_list=[]
         
         # self.show()
-        # self.load_shortcuts()
-        
+
+
+                # Set up the WebEngineView and QWebChannel
+        self.view = QWebEngineView()
+        self.channel = QWebChannel()
+        self.handler = LinkHandler()
+        self.channel.registerObject("linkHandler", self.handler)
+        self.view.page().setWebChannel(self.channel)
+       
+        """ initialize 終わり """
 
 
     
@@ -193,9 +201,6 @@ class MainWindow(QMainWindow):
         if self.tabs.count() > 1:
             self.tabs.removeTab(i)
 
-        # else :
-        #     # self.tabs.removeTab(i)
-        #     print("not pushed left")
         
         print ("-------close_tab end--------")
         print(f"Current tab list: {self.tab_id_title_list}")
@@ -205,12 +210,16 @@ class MainWindow(QMainWindow):
         close_tab_shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
         close_tab_shortcut.activated.connect(self.close_current_tab)
 
+        # Ctrl+r で現在のタブ＋次（右隣り）を閉じる(右隣りがないときはそのタブだけを閉じる)
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+r"), self)
+        close_tab_shortcut.activated.connect(self.close_two_tab)
+
         # Ctrl+Space で現在のタブを閉じる
         close_tab_shortcut = QShortcut(QKeySequence("Ctrl+Space"), self)
         close_tab_shortcut.activated.connect(self.close_related_tab)
 
         # Ctrl+T で新しいタブを開く
-        new_tab_shortcut = QShortcut(QKeySequence("Ctrl+T"), self)
+        new_tab_shortcut = QShortcut(QKeySequence("Ctrl+t"), self)
         new_tab_shortcut.activated.connect(self.add_new_tab)
 
         # Ctrl+Q でアプリケーションを終了する
@@ -231,9 +240,6 @@ class MainWindow(QMainWindow):
             self.tabs.removeTab(current_index)
 
     def close_two_tab(self):
-        # a=self.tabs.count()
-        # print(a)
-        # print(f'現在のリストは{self.tab_id_title_list}')
         
         current_index = self.tabs.currentIndex()
         if current_index != -1:
@@ -464,7 +470,7 @@ class MainWindow(QMainWindow):
         """☆ボタンをクリックするたびに☆と★を切り替える"""
         current_tab = self.tabs.currentWidget()
         if isinstance(current_tab, QWebEngineView):
-            url = current_tab.page().url().toString()
+            
             if self.star_button.isChecked():
                 self.star_button.setText("★")
                 self.add_shortcut()
@@ -591,3 +597,4 @@ window.create_database()
 window.show()
 # マウス等のイベントを監視
 app.exec()
+

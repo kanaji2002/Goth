@@ -507,6 +507,28 @@ body { margin: 0; font-family: Arial, sans-serif; }
 
     </script>
 
+    <!-- qtwebchannel のscript-->
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        // Wait for the document to be fully loaded
+        document.addEventListener("DOMContentLoaded", function () {
+            // Set up the QWebChannel
+            new QWebChannel(qt.webChannelTransport, function (channel) {
+                // Get the Python handler object
+                var handler = channel.objects.linkHandler;
+
+                // Add click event listeners to all links
+                document.querySelectorAll("a").forEach(function (link) {
+                    link.addEventListener("click", function (event) {
+                        event.preventDefault();  // Prevent the default link behavior
+                        var url = link.href;  // Get the link's URL
+                        handler.handleLinkClick(url);  // Send the URL to Python
+                    });
+                });
+            });
+        });
+    </script>
+
 
     <!-- ショートカットのスクリプト -->
     <script>
