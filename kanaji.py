@@ -453,7 +453,7 @@ class MainWindow(QMainWindow):
         """☆ボタンをクリックするたびに☆と★を切り替える"""
         current_tab = self.tabs.currentWidget()
         if isinstance(current_tab, QWebEngineView):
-            url = current_tab.page().url().toString()
+            
             if self.star_button.isChecked():
                 self.star_button.setText("★")
                 self.add_shortcut()
