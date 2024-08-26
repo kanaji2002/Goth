@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+
+body { margin: 0; font-family: Arial, sans-serif; }
+
+
+        #dialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+        }
+        #dialog.active {
+            display: block;
+        }
+        .dialog-header {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .dialog-content {
+            margin-bottom: 20px;
+        }
+        .dialog-footer {
+            text-align: right;
+        }
+        .dialog-footer button {
+            margin-left: 10px;
+        }
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #searchBox, #engineSelect {
+            padding: 16px;
+            margin: 6px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 20px;
+        }
+
+        .container h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .container p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .container a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+     
+
+        .searchBox{
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .searchBox :focus {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .engineSelect {
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+        }
+
+        .engineSelect:focus{
+            outline: none;
+        }
+
+        .button_css{
+            display: inline-block;
+            padding: 20px 20px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 0px;
+        }
+
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        .button-overlay-defo{
+            padding: 10px;
+            /* background-color: rgba(212, 212, 212, 0.199); */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            margin: 10px;
+            width: 170px;
+            text-align: auto;
+            margin: 0 auto;
+            background-color: rgba(88, 207, 243, 0.897);
+            position: absolute;
+            /* padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            border-radius: 5px; */
+            cursor: pointer;
+            /* display: none; 初期は非表示 */
+
+
+
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            /* width: 100%; */
+            /* margin: 0 auto; */
+            display: inline-block;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+
+
+
+        .tile-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: #ffffff;
+            border-radius: 4px;
+            margin-right: 8px;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        .tile-title {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .tile-title-defo {
+            display: inline-block;
+            vertical-align: middle;
+            z-index: 1000; 
+
+            
+        }
+
+        .button-overlay {
+
+            
+            padding: 10px;
+            background-color: rgba(237, 247, 221, 0.955);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin: 10px;
+            width: 170px;
+            text-align: auto;
+            margin: 0 auto;
+            position: absolute;
+            z-index: 1;
+            top: 55%;
+            left: 34%;
+        }
+        
+    </style>
+
+    
+</head>
+
+
+
+
+<body>
+
+<div>
+    <!-- <a href="https://www.youtube.com/">YouTube</a> -->
+    <div id="container">
+        <input type="text" id="searchBox" placeholder="Search...">
+        <select id="engineSelect">
+            <option value="https://www.google.com/search?q=">Google</option>
+            <option value="https://qiita.com/search?q=">Qiita</option>
+            <option value="https://www.youtube.com/results?search_query=">Youtube</option>
+            <option value="https://www.tiktok.com/search?q=">TikTok</option>
+            <option value="https://x.com/search?q=">X</option>
+            <option value="https://scholar.google.co.jp/scholar?hl=ja&as_sdt=0%2C5&q=">Google Scholar</option>
+        </select>
+        <button class="button_css" id="search_button" type="button">検索</button>
+    </div>
+
+    <div id="webgl"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS3DRenderer.js"></script>
+
+<!-- 検索エンジンの表示-->
+    <script>
+                document.getElementById('searchBox').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const searchEngine = document.getElementById('engineSelect').value;
+                    const query = this.value;
+                    window.open(searchEngine + query, '_self');
+                }
+            });
+
+
+            document.getElementById('search_button').addEventListener('click', function(e) {
+                    const query = document.getElementById('searchBox').value;
+                    const searchEngine = document.getElementById('engineSelect').value;
+                    window.open(searchEngine + query, '_self');
+                
+            });
+    </script>
+
+
+
+    <script>
+        // シーン、カメラ、レンダラーを作成add
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+
+
+
+        
+        camera.position.set(6, 7, 10);
+
+        // OrbitControlsを追加
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enablePan = false;  // パン操作を無効にする
+        controls.enableZoom = true; // ズーム操作を無効にする
+
+
+                // 高解像度でレンダリング
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // GLTFローダーを使用してモデルを読み込む
+        const loader = new THREE.GLTFLoader();
+        //desk.glb -> bed_kannsei.glb
+        loader.load('bed_and_desk2.glb', function (gltf) {
+            const model = gltf.scene;
+            scene.add(model);
+            model.position.set(0, -2, 3);
+            model.scale.set(5, 5, 5);
+
+            // レンダリングループ
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // カメラコントロールを更新
+                controls.update();
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+// 座標のテスト
+        const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        box.position.set(5 , 18, 5);
+        scene.add(box);
+      
+
+        // 照明を追加
+        //全体的に明るくする，全方位から均等に照明を当てる．
+        // const ambientLight = new THREE.AmbientLight(0xffffe0, 0.5); // 弱めのアンビエントライト
+        // scene.add(ambientLight);
+
+        //一か所から照らす　太陽光
+        const directionalLight = new THREE.DirectionalLight(0xffffe0, 0.4); // 強めのディレクショナルライト
+        directionalLight.position.set(5, 18, 5);
+        scene.add(directionalLight);
+
+        const hemisphereLight = new THREE.HemisphereLight(0xffffe0, 0x000000, 0.5)
+
+                       // 新しいライトを追加
+        const newLight = new THREE.PointLight(0xffffff, 0.8); // 明るさや色を適宜調整してください
+        newLight.position.set(directionalLight.position.x -2, directionalLight.position.z-3, directionalLight.position.y-20);
+        scene.add(newLight);
+        
+        // const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+        // const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        // const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        // box.position.set(directionalLight.position.x +2 , directionalLight.position.z, directionalLight.position.y -30);
+        // scene.add(box);
+
+        // 矩形光源を作成
+        // new THREE.RectAreaLight(色, 光の強さ, 幅, 高さ)
+        // const light = new THREE.RectAreaLight(0xFFFFe0, 5.0, 2, 20);
+        // scene.add(light);
+
+
+        const pointLight = new THREE.PointLight(0xffffe0, 1, 100);
+        pointLight.position.set(-5, -5, 5);
+        scene.add(pointLight);
+        const cssObject = new THREE.CSS3DObject(div);
+        cssObject.position.set(0, 1, -1        ); // 3D空間内の位置を設定
+        scene.add(cssObject);
+
+
+        
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+
+
+        // マウスイベントリスナーを追加
+        let isDragging = false;
+        let previousMousePosition = {
+            x: 0,
+            y: 0
+        };
+
+        document.addEventListener('mousedown', function(event) {
+            isDragging = true;
+            previousMousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
+        });
+
+        document.addEventListener('mousemove', function(event) {
+            if (isDragging) {
+                const deltaMove = {
+                    x: event.clientX - previousMousePosition.x,
+                    y: event.clientY - previousMousePosition.y
+                };
+
+                const deltaRotationQuaternion = new THREE.Quaternion()
+                    .setFromEuler(new THREE.Euler(
+                        toRadians(deltaMove.y * 1),
+                        toRadians(deltaMove.x * 1),
+                        0,
+                        'XYZ'
+                    ));
+
+                model.quaternion.multiplyQuaternions(deltaRotationQuaternion, model.quaternion);
+                previousMousePosition = {
+                    x: event.clientX,
+                    y: event.clientY
+                };
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        function toRadians(angle) {
+            return angle * (Math.PI / 180);
+        }
+    </script>
+
+
+
+<!-- 
+
+<div id="button1" class="button-overlay">Button 1</div> -->
+
+    <!-- ショートカットを追加ボタン -->
+    <div id="button1" class="button-overlay-defo">
+        <div class="tile-title">ショートカットを追加</div>
+    </div>
+
+    <!-- ダイアログ -->
+    <div id="dialog">
+        <div class="dialog-header">ショートカットを追加</div>
+        <div class="dialog-content">
+            <label for="shortcutName">名前:</label>
+            <input type="text" id="shortcutName" style="width: 100%; margin-bottom: 10px;">
+            <label for="shortcutUrl">URL:</label>
+            <input type="url" id="shortcutUrl" style="width: 100%;">
+        </div>
+        <div class="dialog-footer">
+            <button id="cancelButton">キャンセル</button>
+            <button id="addButton" disabled>完了</button>
+        </div>
+    </div>
+
+
+          
+
+
+    <div id="message" style="display:none; color:blue;">ボタンがクリックされました！</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // シーン、カメラ、レンダラーの作成
+        // const scene = new THREE.Scene();
+        // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // ライトの追加
+        // const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(1, 1, 1).normalize();
+        scene.add(light);
+
+        // 立方体の作成
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        // カメラの位置
+        camera.position.z = 5;
+
+        // アニメーションループ
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 立方体の回転
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+
+            // ボタンの位置を更新
+            updateButtonPosition(cube);
+
+            renderer.render(scene, camera);
+            
+        }
+
+        animate();
+            // メッセージ表示要素を取得
+        
+        // ボタンの位置を更新する関数
+        function updateButtonPosition(object) {
+            const vector = new THREE.Vector3(0.5, 0.5, 0.5);  // 立方体の端の座標
+            vector.applyMatrix4(object.matrixWorld);  // 立方体のワールド座標に変換
+            const message = document.getElementById('message');
+            // 3D座標を2Dスクリーン座標に変換
+            // x -> [-1, 1] を [0, window.innerWidth] に変換
+            // y -> [-1, 1] を [window.innerHeight, 0] に変換
+            vector.project(camera);
+
+            // x -> [0, window.innerWidth]
+            // y -> [0, window.innerHeight]
+            //ここで，yはウィンドウのうえはしから下橋までの　ピクセル方向なので，逆方向に変換
+            //つまり，-1~0の範囲×window.innerHeightに変換するために，yの値を反転させている
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = -(vector.y * 0.5 - 0.5) * window.innerHeight;
+
+            const button1 = document.getElementById('button1');
+            button1.style.left = `${x}px`;
+            button1.style.top = `${y}px`;
+            button1.style.display = 'block';  // ボタンを表示
+
+
+
+
+        }
+                        // クリックイベントをリッスン
+        button1.addEventListener('click', function() {
+        // メッセージを表示
+        console.log("clicked");
+        // message.style.display = 'block';
+    });
+
+
+
+
+    </script>
+
+
+    <!-- ショートカットのスクリプト -->
+    <script>
+        const addShortcutButton = document.getElementById('button1');
+        const dialog = document.getElementById('dialog');
+        const cancelButton = document.getElementById('cancelButton');
+        const addButton = document.getElementById('addButton');
+        const shortcutNameInput = document.getElementById('shortcutName');
+        const shortcutUrlInput = document.getElementById('shortcutUrl');
+
+        // ショートカット追加ボタンをクリックした時にダイアログを表示
+        addShortcutButton.addEventListener('click', () => {
+            dialog.classList.add('active');
+        });
+
+        // キャンセルボタンでダイアログを閉じる
+        cancelButton.addEventListener('click', () => {
+            dialog.classList.remove('active');
+        });
+
+        // 入力フィールドに値があるかどうかをチェックして、完了ボタンを有効化
+        shortcutNameInput.addEventListener('input', checkFormValidity);
+        shortcutUrlInput.addEventListener('input', checkFormValidity);
+
+        function checkFormValidity() {
+            if (shortcutNameInput.value && shortcutUrlInput.value) {
+                addButton.disabled = false;
+            } else {
+                addButton.disabled = true;
+            }
+        }
+
+        // 完了ボタンをクリックしてショートカットを作成
+        addButton.addEventListener('click', async () => {
+            const name = shortcutNameInput.value;
+            const url = shortcutUrlInput.value;
+
+            // ファビコンを取得する
+            const faviconUrl = await getFavicon(url);
+
+            // 新しいショートカットを作成して、ページに追加
+            const newShortcut = document.createElement('div');
+            newShortcut.className = 'button-overlay';
+            newShortcut.innerHTML = `
+                <div class="tile-icon" style="background-image: url('${faviconUrl}');"></div>
+                <div class="tile-title">${name}</div>
+            `;
+            newShortcut.addEventListener('click', () => {
+                window.open(url, '_blank');
+            });
+
+                // 最後の button-overlay 要素を探し、その下に10px間隔で配置
+            const existingShortcuts = document.querySelectorAll('.button-overlay');
+            if (existingShortcuts.length > 0) {
+                const lastShortcut = existingShortcuts[existingShortcuts.length - 1];
+                const lastShortcutRect = lastShortcut.getBoundingClientRect();
+                newShortcut.style.position = 'absolute';
+                newShortcut.style.left = `${lastShortcutRect.right + 10}px`;
+                // newShortcut.style.bottom = `${lastShortcutRect.bottom}px`;
+            }
+
+            document.body.appendChild(newShortcut);
+
+            // ダイアログを閉じて、入力フィールドをクリア
+            dialog.classList.remove('active');
+            shortcutNameInput.value = '';
+            shortcutUrlInput.value = '';
+            addButton.disabled = true;
+        });
+
+        async function getFavicon(siteUrl) {
+    try {
+        const url = new URL(siteUrl);
+        const faviconUrl = `https://www.google.com/s2/favicons?domain=${url.hostname}`;
+        return faviconUrl; // 直接ファビコンURLを返す
+    } catch (error) {
+        return 'default-icon.png'; // エラーが発生した場合のデフォルトアイコン
+    }
+    }
+    </script>
+
+
+</div>
+</body>
+</html>
