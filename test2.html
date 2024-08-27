@@ -1,113 +1,37 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model with Moving Button</title>
+    <title>Pinned Items</title>
     <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-        .button-overlay {
-            position: absolute;
+        .pin-container {
+            display: flex;
+            flex-direction: column;
+        }
+        .pin-item {
             padding: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
+            margin: 5px;
             border: 1px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            display: none; /* 初期は非表示 */
         }
     </style>
+    <script>
+        function addPinnedItem(title, url) {
+            const container = document.querySelector('.pin-container');
+            const item = document.createElement('div');
+            item.className = 'pin-item';
+            item.innerHTML = `<a href="${url}" target="_blank">${title}</a>`;
+            container.prepend(item);  // 上から追加
+        }
+
+        function loadPinnedItemsFromPython(pinnedItems) {
+            pinnedItems.forEach(item => addPinnedItem(item.title, item.url));
+        }
+    </script>
 </head>
 <body>
-
-
-
-          
-    <div id="button1" class="button-overlay">Button 1</div>
-    <div id="button2" class="button-overlay">Button 2</div>
-    <div id="message" style="display:none; color:blue;">ボタンがクリックされました！</div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // シーン、カメラ、レンダラーの作成
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // ライトの追加
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(1, 1, 1).normalize();
-        scene.add(light);
-
-        // 立方体の作成
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
-
-        // カメラの位置
-        camera.position.z = 5;
-
-        // アニメーションループ
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // 立方体の回転
-            cube.rotation.x += 0.01;
-            cube.rotation.y += 0.01;
-
-            // ボタンの位置を更新
-            updateButtonPosition(cube);
-
-            renderer.render(scene, camera);
-            
-        }
-
-        animate();
-            // メッセージ表示要素を取得
-           
-        // ボタンの位置を更新する関数
-        function updateButtonPosition(object) {
-            const vector = new THREE.Vector3(0.5, 0.5, 0.5);  // 立方体の端の座標
-            vector.applyMatrix4(object.matrixWorld);  // 立方体のワールド座標に変換
-            const message = document.getElementById('message');
-            // 3D座標を2Dスクリーン座標に変換
-            // x -> [-1, 1] を [0, window.innerWidth] に変換
-            // y -> [-1, 1] を [window.innerHeight, 0] に変換
-            vector.project(camera);
-
-            // x -> [0, window.innerWidth]
-            // y -> [0, window.innerHeight]
-            //ここで，yはウィンドウのうえはしから下橋までの　ピクセル方向なので，逆方向に変換
-            //つまり，-1~0の範囲×window.innerHeightに変換するために，yの値を反転させている
-            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-            const y = -(vector.y * 0.5 - 0.5) * window.innerHeight;
-
-            const button1 = document.getElementById('button1');
-            button1.style.left = `${x}px`;
-            button1.style.top = `${y}px`;
-            button1.style.display = 'block';  // ボタンを表示
-
-
-
-
-        }
-                        // クリックイベントをリッスン
-        button1.addEventListener('click', function() {
-        // メッセージを表示
-        console.log("clicked");
-        message.style.display = 'block';
-    });
-
-
-
-
-    </script>
-
-
-
-
+    <div class="pin-container">
+        <!-- ピン止めされたアイテムがここに挿入されます -->
+    </div>
 </body>
 </html>

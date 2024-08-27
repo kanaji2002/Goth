@@ -24,8 +24,6 @@ from difflib import SequenceMatcher
 from PySide6.QtWebChannel import QWebChannel
 import sys
 
-# Python object to handle communication with JavaScript
-# Python object to handle communication with JavaScript
 class LinkHandler(QObject):
     @Slot(str,str)
     def handleLinkClick(self, url,name):
@@ -85,21 +83,27 @@ class MainWindow(QMainWindow):
     # tab_id_title_list = []
     # tab_id_title_list.append({'id': 0, 'title': 'Home'})
     
-    tab_id_title_list=[]
+    tab_id_title_list=[
+            {'id': 0, 'title': 'Home'}
+        ]
 
     ## ここに，3Dモデルを格納するオブジェクトを追加する．
     
     
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        
         self.handler = LinkHandler()
         self.vertical_bar = QToolBar("Vertical Bar")
         self.vertical_bar.setOrientation(Qt.Orientation.Vertical)
         self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.vertical_bar)
         self.tabs = QTabWidget(self)
+        
         self.tabs.setDocumentMode(True)
         self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.currentChanged.connect(self.current_tab_changed)
+
+        
         
 
         self.tabs.setTabsClosable(True)
@@ -113,7 +117,7 @@ class MainWindow(QMainWindow):
            # ボタンを作成してタブバーの右上に配置
         self.add_tab_button = QPushButton("newタブ")
         self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
-        
+        self.showMaximized()
         # ボタンがクリックされたときに、新しいタブを開くように設定
         self.add_tab_button.clicked.connect(lambda: self.add_new_tab())
         #self.add_tab_button.clicked.connect(self.add_new_tab())
@@ -197,7 +201,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("")
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
-        # self.delete_tab_index_list=[]
+        #self.delete_tab_index_list=[]
         
         # self.show()
 
@@ -210,6 +214,7 @@ class MainWindow(QMainWindow):
         # self.handler = LinkHandler()
         # self.channel.registerObject("linkHandler", self.handler)
         # self.view.page().setWebChannel(self.channel)
+        
        
         """ initialize 終わり """
 
@@ -226,24 +231,24 @@ class MainWindow(QMainWindow):
 
     def setup_shortcuts(self):
         # Ctrl+W で現在のタブを閉じる
-        close_tab_shortcut = QShortcut(QKeySequence("Ctrl | W"), self)
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
         close_tab_shortcut.activated.connect(self.close_current_tab)
 
         # Ctrl+r で現在のタブ＋次（右隣り）を閉じる(右隣りがないときはそのタブだけを閉じる)
-        close_tab_shortcut = QShortcut(QKeySequence("Ctrl | r"), self)
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+r"), self)
         close_tab_shortcut.activated.connect(self.close_two_tab)
 
         # Ctrl+Space で現在のタブを閉じる
-        close_tab_shortcut = QShortcut(QKeySequence("Ctrl | Space"), self)
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+Space"), self)
         close_tab_shortcut.activated.connect(self.close_related_tab)
 
         # Ctrl+T で新しいタブを開く
-        new_tab_shortcut = QShortcut(QKeySequence("Ctrl | t"), self)
+        new_tab_shortcut = QShortcut(QKeySequence("Ctrl+t"), self)
         new_tab_shortcut.activated.connect(self.add_new_tab)
         # self.add_tab_button.clicked.connect(lambda: self.add_new_tab(qurl=None, label="ブランク"))
 
         # Ctrl+Q でアプリケーションを終了する
-        quit_shortcut = QShortcut(QKeySequence("Ctrl | Q"), self)
+        quit_shortcut = QShortcut(QKeySequence("Ctrl+Q"), self)
         quit_shortcut.activated.connect(self.close)
 
         # Alt+LeftArrow で前のタブに移動する
@@ -268,57 +273,44 @@ class MainWindow(QMainWindow):
             
             
     def close_related_tab(self):
-        print(f'!!!!!!現在格納されているリスト！！{self.tab_id_title_list}')
-        current_index = self.tabs.currentIndex()
-        
-        delete_tab_index_list = []
-        
-        if current_index != -1 and self.tabs.count() > 1:
-            print(f'現在のタブは{current_index}')   
-            # print(f'現在のタブの数は{self.tabs.count()}')
-        
-            
-            # tem=self.tab_id_title_list[current_index]['title']
-            # print(f'現在のタブのtitleは{tem}')
-            
+            print(f'!!!!!!現在格納されているリスト！！{self.tab_id_title_list}')
+            current_index = self.tabs.currentIndex()
+            delete_tab_index_list = []
 
-            for i in range(len(self.tab_id_title_list)):
-                s = SequenceMatcher(None, self.tab_id_title_list[current_index]['title'], self.tab_id_title_list[i]['title'])
-                # if s.ratio() > 0 and i!=current_index:
-                #     print('類似度：{0}%，{1}.tabのIDは，{2}です．'.format(round(s.ratio()*100,1), self.tab_id_title_list[i]['title'],i))
-                #     delete_tab_index_list.append(i)
-                
-                # current_tabも削除対象に含めル．つまり，類似度は　100%でOK
-                print('tabのID{0}の類似度：{1}%.タイトルは，{2}です．'.format(i,round(s.ratio()*100,1), self.tab_id_title_list[i]['title']))
-                if s.ratio() > 0.8 :
-                    delete_tab_index_list.append(i)
-                print(f'削除対象のタブは，{delete_tab_index_list}')
+            if current_index != -1 and self.tabs.count() > 1:
+                print(f'現在のタブは{current_index}')   
+                print(f'現在のタブの数は{self.tabs.count()}')
 
-                
-                # 関連するタブのindexをリストに追加していき，最後に，まとめて削除
-            for delete_tab_index in reversed(delete_tab_index_list):
-                
-                if self.tabs.count() > 1:
-                    print(f'{delete_tab_index}番目のタブを削除します.タイトルは，{self.tab_id_title_list[delete_tab_index]["title"]}です．')
-                    # ここでのi
-                    # print(delete_tab_index_list.index(delete_tab_index))
-                    # self.tab_id_title_list.remove(self.tab_id_title_list[delete_tab_index_list.index(delete_tab_index)])
-                    del self.tab_id_title_list[delete_tab_index]
-                    self.tabs.removeTab(delete_tab_index)
-                    delete_tab_index_list.remove(delete_tab_index)
-            tempo_list=[]
-            for index, value in enumerate(self.tab_id_title_list):
-                updated_list={'id': index, 'title': value['title']}
-                tempo_list.append(updated_list)
-                
-            self.tab_id_title_list=tempo_list
-            print(f'更新後のリストは{self.tab_id_title_list}')
+                tem_list=self.tab_id_title_list
+                tem=tem_list[current_index]['title']
+                print(f'現在のタブのtitleは{tem}')
+
+
+                for i in range(len(self.tab_id_title_list)):
+                    s = SequenceMatcher(None, self.tab_id_title_list[current_index]['title'], self.tab_id_title_list[i]['title'])
+                    # if s.ratio() > 0 and i!=current_index:
+                    #     print('類似度：{0}%，{1}.tabのIDは，{2}です．'.format(round(s.ratio()*100,1), self.tab_id_title_list[i]['title'],i))
+                    #     delete_tab_index_list.append(i)
+
+                    # current_tabも削除対象に含めル．つまり，類似度は　100%でOK
+                    print('tabのID{0}の類似度：{1}%.タイトルは，{2}です．'.format(i,round(s.ratio()*100,1), self.tab_id_title_list[i]['title']))
+                    if s.ratio() > 0.8 :
+                        delete_tab_index_list.append(i)
+                    print(f'削除対象のタブは，{delete_tab_index_list}')
+
+
+                    # 関連するタブのindexをリストに追加していき，最後に，まとめて削除
+                for i in reversed(delete_tab_index_list):
+                    if self.tabs.count() > 1:
+                        print(f'{i}番目のタブを削除します.タイトルは，{self.tab_id_title_list[i]["title"]}です．')
+                        self.tabs.removeTab(i)
+                        delete_tab_index_list.remove(i)
+            print ("-------close_related_tab end--------")
+            print(f"Current tab list: {self.tab_id_title_list}")
                 
                 
 
 
-        print ("-------close_related_tab end--------")
-        print(f"Current tab list: {self.tab_id_title_list}")
         
                 
                 
@@ -348,44 +340,60 @@ class MainWindow(QMainWindow):
 
     def add_new_tab(self, qurl=None, label="ブランク"):
         self.update_star_icon()
-        if qurl is None:
-            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')    
-        elif isinstance(qurl, str):
-            qurl = QUrl(qurl)  # 文字列からQUrlに変換する
-
+        qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')            
         browser = QWebEngineView()
-
-        # WebChannelを設定する
-        channel = QWebChannel()  # 新しいチャンネルを作成
-        handler = LinkHandler()  # 新しいハンドラを作成
-        channel.registerObject("linkHandler", handler)
-        browser.page().setWebChannel(channel)  # 新しいブラウザページにチャンネルを設定
-
-
-        
+        print(qurl)
         browser.setUrl(qurl)
-
-
+        
         i = self.tabs.addTab(browser, label)
         print(f'{i}番目のタブを開いたよ')
         self.tabs.setCurrentIndex(i)
         new_title = browser.page().title()
         if new_title == '':
             new_title = 'Document'
+            
+            
+            
+        # タイトルとIDのリストを更新
+        found = False
+        
+        
+        for tab_info in self.tab_id_title_list:
+            
+            
+            if tab_info['id'] == i:
+                tab_info['title'] = new_title
+                found = True
+                break
+        
+        if not found:
+            # 空いているIDを探す
+            available_id = None
+            for idx in range(self.tabs.count()):
+                if not any(tab_info['id'] == idx for tab_info in self.tab_id_title_list):
+                    available_id = idx
+                    break
+            
+            if available_id is not None:
+                self.tab_id_title_list.insert(available_id, {'id': available_id, 'title': new_title})
+            else:
+                self.tab_id_title_list.append({'id': i, 'title': new_title})
 
+        print(f"New tab opened: ID={i}, Title={new_title}")
+        
         # タイトル変更時に on_title_changed を呼び出す
         browser.titleChanged.connect(lambda new_title, i=i: self.on_title_changed(new_title, i))
-
-        # URL変更時に update_urlbar を呼び出す
+        
+        # タブのIDとタイトルをリストに追加
+        
+        
         browser.urlChanged.connect(lambda qurl, browser=browser: self.update_urlbar(qurl, browser))
-
-        # タブのアイコンとタイトルを更新
-        browser.loadFinished.connect(lambda _, i=i: self.tabs.setTabText(
-            i, browser.page().title()[:7] if len(browser.page().title()) > 7 else browser.page().title().ljust(7)
-        ))
+        
+        browser.loadFinished.connect(lambda _, i=i, : self.tabs.setTabText(i, browser.page().title()[:7] if len(browser.page().title()) > 7 else browser.page().title().ljust(7)))
         browser.iconChanged.connect(lambda _, i=i, browser=browser: self.tabs.setTabIcon(i, browser.icon()))
-
-        print("-------add_new_tab end--------")
+        
+        
+        print ("-------add_new_tab end--------")
         print(f"Current tab list: {self.tab_id_title_list}")
 
         
@@ -676,6 +684,9 @@ window.show()
 
 # マウス等のイベントを監視
 app.exec()
+
+
+
 
 
 
