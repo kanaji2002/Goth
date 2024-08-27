@@ -319,11 +319,27 @@ class MainWindow(QMainWindow):
 
     def add_new_tab(self, qurl=None, label="ブランク"):
         self.update_star_icon()
-        qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')            
+        if qurl is None:
+            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')    
+        elif isinstance(qurl, str):
+            qurl = QUrl(qurl)  # 文字列からQUrlに変換する
+
         browser = QWebEngineView()
-        print(qurl)
-        browser.setUrl(qurl)
+
+        # WebChannelを設定する
+        channel = QWebChannel()  # 新しいチャンネルを作成
+        handler = LinkHandler()  # 新しいハンドラを作成
+        channel.registerObject("linkHandler", handler)
+        browser.page().setWebChannel(channel)  # 新しいブラウザページにチャンネルを設定
+
+
         
+        browser.setUrl(qurl)
+
+
+
+
+
         i = self.tabs.addTab(browser, label)
         print(f'{i}番目のタブを開いたよ')
         self.tabs.setCurrentIndex(i)
