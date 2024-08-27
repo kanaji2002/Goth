@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
            # ボタンを作成してタブバーの右上に配置
         self.add_tab_button = QPushButton("newタブ")
         self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
-        
+        # self.showMaximized()
         # ボタンがクリックされたときに、新しいタブを開くように設定
         self.add_tab_button.clicked.connect(lambda: self.add_new_tab())
         #self.add_tab_button.clicked.connect(self.add_new_tab())
@@ -486,6 +486,8 @@ class MainWindow(QMainWindow):
 
     def update_star_icon(self):
         """現在のタブのURLがブックマークされているかどうかで☆と★を切り替える"""
+
+        
         current_tab = self.tabs.currentWidget()
         if isinstance(current_tab, QWebEngineView):
             url = current_tab.page().url().toString()
@@ -498,6 +500,9 @@ class MainWindow(QMainWindow):
             else:
                 self.star_button.setChecked(False)
                 self.star_button.setText("☆")
+                for action in self.vertical_bar.actions():
+                    self.vertical_bar.removeAction(action)
+                self.load_shortcuts()
 
     # def force_star(self):
     #     current_tab = self.tabs.currentWidget()

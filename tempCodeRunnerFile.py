@@ -1,1 +1,1 @@
-      # self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+self.showMaximized()

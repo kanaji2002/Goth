@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
         self.vertical_bar.setOrientation(Qt.Orientation.Vertical)
         self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.vertical_bar)
         self.tabs = QTabWidget(self)
-        
+        self.vertical_bar.setFixedWidth(150)
         self.tabs.setDocumentMode(True)
         self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.currentChanged.connect(self.current_tab_changed)
@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
            # ボタンを作成してタブバーの右上に配置
         self.add_tab_button = QPushButton("newタブ")
         self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
-        self.showMaximized()
+        # self.showMaximized()
         # ボタンがクリックされたときに、新しいタブを開くように設定
         self.add_tab_button.clicked.connect(lambda: self.add_new_tab())
         #self.add_tab_button.clicked.connect(self.add_new_tab())
@@ -125,8 +125,6 @@ class MainWindow(QMainWindow):
 
 
         self.add_tab_button.setStyleSheet("background-color: white; color: black;")
-
-        
         
         self.tabs.setCornerWidget(self.add_tab_button, Qt.TopRightCorner)
         
@@ -139,8 +137,6 @@ class MainWindow(QMainWindow):
         
         self.tabs.tabCloseRequested.connect(self.close_tab)
 
-        
-        
         
         self.status = QStatusBar()
         self.setStatusBar(self.status)
@@ -171,11 +167,6 @@ class MainWindow(QMainWindow):
         self.star_button.setStatusTip("Add shortcut to vertical bar")
         self.star_button.setCheckable(True)  # チェック可能に設定
         self.star_button.triggered.connect(self.toggle_star)
-
-            
-        # self.delete_star_button=QAction("XX", self)
-        # self.delete_star_button.setStatusTip("delete shortcut from vertical bar")
-        # self.delete_star_button.triggered.connect(self.remove_bookmark)
         
         self.toolbar.addAction(self.star_button)
         # self.toolbar.addAction(self.delete_star_button)
@@ -201,19 +192,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("")
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
-        #self.delete_tab_index_list=[]
-        
-        # self.show()
 
-
-
-
-        #  #Set up the WebEngineView and QWebChannel
-        # self.view = QWebEngineView()
-        # self.channel = QWebChannel()
-        # self.handler = LinkHandler()
-        # self.channel.registerObject("linkHandler", self.handler)
-        # self.view.page().setWebChannel(self.channel)
         
        
         """ initialize 終わり """
