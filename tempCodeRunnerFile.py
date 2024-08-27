@@ -1,2 +1,1 @@
-
-            bookmarked = any(shor
+      # self.tabs.setStyleSheet("QTabBar::tab { color: white; }")

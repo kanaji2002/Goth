@@ -494,6 +494,8 @@ class MainWindow(QMainWindow):
 
     def update_star_icon(self):
         """現在のタブのURLがブックマークされているかどうかで☆と★を切り替える"""
+
+        
         current_tab = self.tabs.currentWidget()
         if isinstance(current_tab, QWebEngineView):
             url = current_tab.page().url().toString()
@@ -506,6 +508,9 @@ class MainWindow(QMainWindow):
             else:
                 self.star_button.setChecked(False)
                 self.star_button.setText("☆")
+                for action in self.vertical_bar.actions():
+                    self.vertical_bar.removeAction(action)
+                self.load_shortcuts()
 
     # def force_star(self):
     #     current_tab = self.tabs.currentWidget()
@@ -549,15 +554,26 @@ class MainWindow(QMainWindow):
 
     def remove_bookmark(self):
         current_tab = self.tabs.currentWidget()
-        # current_tabが， QWebEngineViewのインスタンスであるかどうかを確認
-        # つまり，アクティブなタブ達（現在のタブ達）が，Webページにあるかどうかを確認
+        # 現在のタブが QWebEngineView のインスタンスかどうかを確認
         if isinstance(current_tab, QWebEngineView):
             url = current_tab.page().url().toString()
-        for action in self.vertical_bar.actions():
-            if hasattr(action, 'url') and action.url == url:
+            actions_to_remove = []  # 削除するアクションを一時的に保存するリスト
+
+            # vertical_bar からアクションを探して削除
+            for action in self.vertical_bar.actions():
+                if hasattr(action, 'url') and action.url == url:
+                    actions_to_remove.append(action)
+
+            # すべての該当するアクションを削除
+            for action in actions_to_remove:
                 self.vertical_bar.removeAction(action)
-                self.delete_shortcut_from_xml(url)
-                break
+
+            # XML からもショートカットを削除
+            self.delete_shortcut_from_xml(url)
+
+        # お気に入りの星アイコンを更新
+        self.update_star_icon()
+
 
     def delete_shortcut_from_xml(self,url):
         if not os.path.exists('shortcuts.xml'):

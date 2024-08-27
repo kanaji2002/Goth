@@ -21,7 +21,20 @@ from PySide6.QtCore import Qt, QPoint
 from difflib import SequenceMatcher
 
 
+from PySide6.QtWebChannel import QWebChannel
+import sys
 
+# Python object to handle communication with JavaScript
+# Python object to handle communication with JavaScript
+class LinkHandler(QObject):
+    @Slot(str,str)
+    def handleLinkClick(self, url,name):
+        print(f"Link clicked: URL={url}, Name={name}")
+        # Add a new tab with the clicked URL
+        # window.add_new_tab()
+        url = QUrl(url)
+        window.add_pin_stop(url, name)
+        window.add_new_tab(url, "New Tab")
 class AdblockX:
     def __init__(self, page, adBlocker):
         self.page = page
@@ -79,6 +92,7 @@ class MainWindow(QMainWindow):
     
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        self.handler = LinkHandler()
         self.vertical_bar = QToolBar("Vertical Bar")
         self.vertical_bar.setOrientation(Qt.Orientation.Vertical)
         self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.vertical_bar)
@@ -98,16 +112,25 @@ class MainWindow(QMainWindow):
 
            # ボタンを作成してタブバーの右上に配置
         self.add_tab_button = QPushButton("newタブ")
-        self.add_tab_button.clicked.connect(self.add_new_tab())
+        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
+        
+        # ボタンがクリックされたときに、新しいタブを開くように設定
+        self.add_tab_button.clicked.connect(lambda: self.add_new_tab())
+        #self.add_tab_button.clicked.connect(self.add_new_tab())
+
+
+
         self.add_tab_button.setStyleSheet("background-color: white; color: black;")
 
-        
+        self.vertical_bar.setFixedWidth(200)
         
         self.tabs.setCornerWidget(self.add_tab_button, Qt.TopRightCorner)
         
       
-        self.add_tab_button.setStyleSheet("background-color: gray; color: white;")
+        #self.add_tab_button.setStyleSheet("background-color: gray; color: white;")
+        # ボタンがクリックされたときに、新しいタブを開くように設定
         self.add_tab_button.clicked.connect(self.add_new_tab)
+
 
         
         self.tabs.tabCloseRequested.connect(self.close_tab)
@@ -121,6 +144,9 @@ class MainWindow(QMainWindow):
         navtb = QToolBar("Navigation")
         self.addToolBar(navtb)
         self.load_shortcuts()
+        # アプリケーションの起動時にピン留めされたショートカットをロード
+        self.load_shortcuts_pin()
+
         back_btn = QAction("<", self)
         back_btn.setStatusTip("Back to previous page")
         back_btn.triggered.connect(lambda: self.tabs.currentWidget().back())
@@ -174,6 +200,16 @@ class MainWindow(QMainWindow):
         # self.delete_tab_index_list=[]
         
         # self.show()
+
+
+
+
+        #  #Set up the WebEngineView and QWebChannel
+        # self.view = QWebEngineView()
+        # self.channel = QWebChannel()
+        # self.handler = LinkHandler()
+        # self.channel.registerObject("linkHandler", self.handler)
+        # self.view.page().setWebChannel(self.channel)
        
         """ initialize 終わり """
 
@@ -190,31 +226,32 @@ class MainWindow(QMainWindow):
 
     def setup_shortcuts(self):
         # Ctrl+W で現在のタブを閉じる
-        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl | W"), self)
         close_tab_shortcut.activated.connect(self.close_current_tab)
 
         # Ctrl+r で現在のタブ＋次（右隣り）を閉じる(右隣りがないときはそのタブだけを閉じる)
-        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+r"), self)
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl | r"), self)
         close_tab_shortcut.activated.connect(self.close_two_tab)
 
         # Ctrl+Space で現在のタブを閉じる
-        close_tab_shortcut = QShortcut(QKeySequence("Ctrl+Space"), self)
+        close_tab_shortcut = QShortcut(QKeySequence("Ctrl | Space"), self)
         close_tab_shortcut.activated.connect(self.close_related_tab)
 
         # Ctrl+T で新しいタブを開く
-        new_tab_shortcut = QShortcut(QKeySequence("Ctrl+t"), self)
+        new_tab_shortcut = QShortcut(QKeySequence("Ctrl | t"), self)
         new_tab_shortcut.activated.connect(self.add_new_tab)
+        # self.add_tab_button.clicked.connect(lambda: self.add_new_tab(qurl=None, label="ブランク"))
 
         # Ctrl+Q でアプリケーションを終了する
-        quit_shortcut = QShortcut(QKeySequence("Ctrl+Q"), self)
+        quit_shortcut = QShortcut(QKeySequence("Ctrl | Q"), self)
         quit_shortcut.activated.connect(self.close)
 
         # Alt+LeftArrow で前のタブに移動する
-        prev_tab_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Left), self)
+        prev_tab_shortcut = QShortcut(QKeySequence(Qt.ALT | Qt.Key_Left), self)
         prev_tab_shortcut.activated.connect(self.prev_tab)
 
         # Alt+RightArrow で次のタブに移動する
-        next_tab_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Right), self)
+        next_tab_shortcut = QShortcut(QKeySequence(Qt.ALT | Qt.Key_Right), self)
         next_tab_shortcut.activated.connect(self.next_tab)
 
     def close_current_tab(self):
@@ -311,61 +348,47 @@ class MainWindow(QMainWindow):
 
     def add_new_tab(self, qurl=None, label="ブランク"):
         self.update_star_icon()
-        qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')            
+        if qurl is None:
+            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')    
+        elif isinstance(qurl, str):
+            qurl = QUrl(qurl)  # 文字列からQUrlに変換する
+
         browser = QWebEngineView()
-        print(qurl)
-        browser.setUrl(qurl)
+
+        # WebChannelを設定する
+        channel = QWebChannel()  # 新しいチャンネルを作成
+        handler = LinkHandler()  # 新しいハンドラを作成
+        channel.registerObject("linkHandler", handler)
+        browser.page().setWebChannel(channel)  # 新しいブラウザページにチャンネルを設定
+
+
         
+        browser.setUrl(qurl)
+
+
         i = self.tabs.addTab(browser, label)
         print(f'{i}番目のタブを開いたよ')
         self.tabs.setCurrentIndex(i)
         new_title = browser.page().title()
         if new_title == '':
             new_title = 'Document'
-            
-            
-            
-        # タイトルとIDのリストを更新
-        found = False
-        
-        
-        for tab_info in self.tab_id_title_list:
-            
-            
-            if tab_info['id'] == i:
-                tab_info['title'] = new_title
-                found = True
-                break
-        
-        if not found:
-            # 空いているIDを探す
-            available_id = None
-            for idx in range(self.tabs.count()):
-                if not any(tab_info['id'] == idx for tab_info in self.tab_id_title_list):
-                    available_id = idx
-                    break
-            
-            if available_id is not None:
-                self.tab_id_title_list.insert(available_id, {'id': available_id, 'title': new_title})
-            else:
-                self.tab_id_title_list.append({'id': i, 'title': new_title})
 
-        print(f"New tab opened: ID={i}, Title={new_title}")
-        
         # タイトル変更時に on_title_changed を呼び出す
         browser.titleChanged.connect(lambda new_title, i=i: self.on_title_changed(new_title, i))
-        
-        # タブのIDとタイトルをリストに追加
-        
-        
+
+        # URL変更時に update_urlbar を呼び出す
         browser.urlChanged.connect(lambda qurl, browser=browser: self.update_urlbar(qurl, browser))
-        
-        browser.loadFinished.connect(lambda _, i=i, : self.tabs.setTabText(i, browser.page().title()[:7] if len(browser.page().title()) > 7 else browser.page().title().ljust(7)))
+
+        # タブのアイコンとタイトルを更新
+        browser.loadFinished.connect(lambda _, i=i: self.tabs.setTabText(
+            i, browser.page().title()[:7] if len(browser.page().title()) > 7 else browser.page().title().ljust(7)
+        ))
         browser.iconChanged.connect(lambda _, i=i, browser=browser: self.tabs.setTabIcon(i, browser.icon()))
-        
-        
-        print ("-------add_new_tab end--------")
+
+        print("-------add_new_tab end--------")
         print(f"Current tab list: {self.tab_id_title_list}")
+
+        
         
     def on_title_changed(self, new_title, i):
         self.update_star_icon()
@@ -518,15 +541,26 @@ class MainWindow(QMainWindow):
 
     def remove_bookmark(self):
         current_tab = self.tabs.currentWidget()
-        # current_tabが， QWebEngineViewのインスタンスであるかどうかを確認
-        # つまり，アクティブなタブ達（現在のタブ達）が，Webページにあるかどうかを確認
+        # 現在のタブが QWebEngineView のインスタンスかどうかを確認
         if isinstance(current_tab, QWebEngineView):
             url = current_tab.page().url().toString()
-        for action in self.vertical_bar.actions():
-            if hasattr(action, 'url') and action.url == url:
+            actions_to_remove = []  # 削除するアクションを一時的に保存するリスト
+
+            # vertical_bar からアクションを探して削除
+            for action in self.vertical_bar.actions():
+                if hasattr(action, 'url') and action.url == url:
+                    actions_to_remove.append(action)
+
+            # すべての該当するアクションを削除
+            for action in actions_to_remove:
                 self.vertical_bar.removeAction(action)
-                self.delete_shortcut_from_xml(url)
-                break
+
+            # XML からもショートカットを削除
+            self.delete_shortcut_from_xml(url)
+
+        # お気に入りの星アイコンを更新
+        self.update_star_icon()
+
 
     def delete_shortcut_from_xml(self,url):
         if not os.path.exists('shortcuts.xml'):
@@ -570,7 +604,78 @@ class MainWindow(QMainWindow):
             root = ET.Element("shortcuts")
             tree = ET.ElementTree(root)
             tree.write('shortcuts.xml')
-           
+
+
+    ## ここからが，pin度目を，xmlに保存していくコード
+
+    def add_pin_stop(self, url, name):
+        print("add_pin_stop")
+        print(f"{url=}, {name=}in add_pin_stop")
+        self.save_pin_to_xml(name, url.toString())
+
+    def save_pin_to_xml(self, name, url):
+        # XMLファイルが存在しない場合は作成する
+        if not os.path.exists('shortcuts_pin.xml'):
+            root = ET.Element("shortcuts")
+            tree = ET.ElementTree(root)
+            tree.write('shortcuts_pin.xml')
+
+        tree = ET.parse('shortcuts_pin.xml')
+        root = tree.getroot()
+
+        # 同じURLが既に存在するかチェック
+        for shortcut in root.findall('shortcut'):
+            if shortcut.find('url').text == url:
+                print("pin is already exists.")
+                return
+
+        # 新しいショートカットを追加
+        shortcut = ET.SubElement(root, 'shortcut')
+        ET.SubElement(shortcut, 'title').text = name
+        ET.SubElement(shortcut, 'url').text = url
+        tree.write('shortcuts_pin.xml')
+
+
+
+    # def remove_pin(self):
+       # ピン止めをはずす関数．これはまだ実装しなくてもいいかも．
+    
+    # def delete_shortcut_from_xml(self,url):
+
+
+    def add_website_shortcut_pin(self, url, title):
+        # ショートカットのボタンを作成
+        shortcut_button = QAction(title, self)  # タイトルをボタンに設定
+        shortcut_button.url = url
+
+        # ショートカットのアイコン設定（URLのアイコンを設定するなど）
+        view = QWebEngineView()
+        view.load(QUrl(url))
+        view.iconChanged.connect(lambda icon, button=shortcut_button: button.setIcon(icon))
+
+        # ボタンがクリックされたときに新しいタブでURLを開く
+        shortcut_button.triggered.connect(lambda: self.add_new_tab(QUrl(url), title))
+
+        # ショートカットボタンをツールバーまたは任意の場所に追加
+        self.vertical_bar.addAction(shortcut_button)
+
+    def load_shortcuts_pin(self):
+        if not os.path.exists('shortcuts_pin.xml'):
+            return
+        tree = ET.parse('shortcuts_pin.xml')
+        root = tree.getroot()
+        added_urls = set()
+        for shortcut in root.findall('shortcut'):
+            title = shortcut.find('title').text
+            url = shortcut.find('url').text
+            print(f"{title=}, {url=}")
+            # URL文字列をQUrlに変換してからショートカットを追加
+            qurl = QUrl(url)  # QUrlオブジェクトに変換
+            # if url not in added_urls:
+            #     self.add_website_shortcut_pin(qurl, title)  # QUrlオブジェクトを渡す
+            #     added_urls.add(url)
+
+        
 
 app = QApplication(sys.argv)
 app.setApplicationName("Goth")
@@ -578,5 +683,12 @@ window = MainWindow()
 window.create_database()
 # ページを描画
 window.show()
+
+
 # マウス等のイベントを監視
 app.exec()
+
+
+
+
+
