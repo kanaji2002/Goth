@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
 
            # ボタンを作成してタブバーの右上に配置
         self.add_tab_button = QPushButton("newタブ")
-        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
+        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/three.html'), 'Homepage')
         # self.showMaximized()
         # ボタンがクリックされたときに、新しいタブを開くように設定
         self.add_tab_button.clicked.connect(lambda: self.add_new_tab())
