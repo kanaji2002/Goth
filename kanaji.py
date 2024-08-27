@@ -27,12 +27,13 @@ import sys
 # Python object to handle communication with JavaScript
 # Python object to handle communication with JavaScript
 class LinkHandler(QObject):
-    @Slot(str)
-    def handleLinkClick(self, url):
-        print(f"Link clicked: {url}")
+    @Slot(str,str)
+    def handleLinkClick(self, url,name):
+        print(f"Link clicked: URL={url}, Name={name}")
         # Add a new tab with the clicked URL
         # window.add_new_tab()
         url = QUrl(url)
+        window.add_pin_stop(url, name)
         window.add_new_tab(url, "New Tab")
 class AdblockX:
     def __init__(self, page, adBlocker):
@@ -143,6 +144,9 @@ class MainWindow(QMainWindow):
         navtb = QToolBar("Navigation")
         self.addToolBar(navtb)
         self.load_shortcuts()
+        # アプリケーションの起動時にピン留めされたショートカットをロード
+        self.load_shortcuts_pin()
+
         back_btn = QAction("<", self)
         back_btn.setStatusTip("Back to previous page")
         back_btn.triggered.connect(lambda: self.tabs.currentWidget().back())
@@ -589,7 +593,78 @@ class MainWindow(QMainWindow):
             root = ET.Element("shortcuts")
             tree = ET.ElementTree(root)
             tree.write('shortcuts.xml')
-           
+
+
+    ## ここからが，pin度目を，xmlに保存していくコード
+
+    def add_pin_stop(self, url, name):
+        print("add_pin_stop")
+        print(f"{url=}, {name=}in add_pin_stop")
+        self.save_pin_to_xml(name, url.toString())
+
+    def save_pin_to_xml(self, name, url):
+        # XMLファイルが存在しない場合は作成する
+        if not os.path.exists('shortcuts_pin.xml'):
+            root = ET.Element("shortcuts")
+            tree = ET.ElementTree(root)
+            tree.write('shortcuts_pin.xml')
+
+        tree = ET.parse('shortcuts_pin.xml')
+        root = tree.getroot()
+
+        # 同じURLが既に存在するかチェック
+        for shortcut in root.findall('shortcut'):
+            if shortcut.find('url').text == url:
+                print("pin is already exists.")
+                return
+
+        # 新しいショートカットを追加
+        shortcut = ET.SubElement(root, 'shortcut')
+        ET.SubElement(shortcut, 'title').text = name
+        ET.SubElement(shortcut, 'url').text = url
+        tree.write('shortcuts_pin.xml')
+
+
+
+    # def remove_pin(self):
+       # ピン止めをはずす関数．これはまだ実装しなくてもいいかも．
+    
+    # def delete_shortcut_from_xml(self,url):
+
+
+    def add_website_shortcut_pin(self, url, title):
+        # ショートカットのボタンを作成
+        shortcut_button = QAction(title, self)  # タイトルをボタンに設定
+        shortcut_button.url = url
+
+        # ショートカットのアイコン設定（URLのアイコンを設定するなど）
+        view = QWebEngineView()
+        view.load(QUrl(url))
+        view.iconChanged.connect(lambda icon, button=shortcut_button: button.setIcon(icon))
+
+        # ボタンがクリックされたときに新しいタブでURLを開く
+        shortcut_button.triggered.connect(lambda: self.add_new_tab(QUrl(url), title))
+
+        # ショートカットボタンをツールバーまたは任意の場所に追加
+        self.vertical_bar.addAction(shortcut_button)
+
+    def load_shortcuts_pin(self):
+        if not os.path.exists('shortcuts_pin.xml'):
+            return
+        tree = ET.parse('shortcuts_pin.xml')
+        root = tree.getroot()
+        added_urls = set()
+        for shortcut in root.findall('shortcut'):
+            title = shortcut.find('title').text
+            url = shortcut.find('url').text
+            print(f"{title=}, {url=}")
+            # URL文字列をQUrlに変換してからショートカットを追加
+            qurl = QUrl(url)  # QUrlオブジェクトに変換
+            # if url not in added_urls:
+            #     self.add_website_shortcut_pin(qurl, title)  # QUrlオブジェクトを渡す
+            #     added_urls.add(url)
+
+        
 
 app = QApplication(sys.argv)
 app.setApplicationName("Goth")
