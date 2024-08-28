@@ -443,7 +443,7 @@ class MainWindow(QMainWindow):
         
 
     def navigate_home(self):
-        self.tabs.currentWidget().setUrl(QUrl("https://kanaji2002.github.io/Goth-toppage/top_page.html"))
+        self.tabs.currentWidget().setUrl(QUrl("https://kanaji2002.github.io/Goth-toppage/room1.html"))
 
     def navigate_to_url(self):
         url = self.urlbar.text()
