@@ -15,14 +15,16 @@ import yt_dlp
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 from PySide6.QtCore import Qt, QPoint
 
- 
 
-#類似度
+#類似度を計算するためのモジュール
 from difflib import SequenceMatcher
 
-
+# htmlからpyhonにデータを渡すためのモジュール
 from PySide6.QtWebChannel import QWebChannel
 import sys
+
+#音楽を再生するためのモジュール
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 class LinkHandler(QObject):
     @Slot(str,str)
@@ -146,6 +148,18 @@ class MainWindow(QMainWindow):
         self.room4.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room4.html')))
         self.toolbar.addAction(self.room4)
 
+        self.player = QMediaPlayer(self)
+        self.audio_output = QAudioOutput(self)
+        self.player.setAudioOutput(self.audio_output)
+
+        self.play_button = QAction("Play music")
+        self.play_button.setIcon(QIcon("parts/saisei.png"))
+        self.play_button.setStatusTip("play music")
+        self.play_button.triggered.connect(self.toggle_music)
+        #self.play_button.clicked.connect(self.toggle_music)
+        self.toolbar.addAction(self.play_button)
+
+
         
 
 
@@ -175,6 +189,18 @@ class MainWindow(QMainWindow):
         
        
         """ initialize 終わり """
+
+
+    def toggle_music(self):
+        if self.player.playbackState() == QMediaPlayer.PlayingState:
+            self.player.pause()
+            self.play_button.setIcon(QIcon("parts/saisei.png"))
+        else:
+            # 音楽ファイルのURLを設定（ローカルファイルの場合は "file:///フルパス" の形式で指定）
+            self.player.setSource(QUrl("https://kanaji2002.github.io/Goth-toppage/mititeyuku_free.mp3"))
+            self.player.play()
+            self.play_button.setIcon(QIcon("parts/stop.png"))
+
 
 
     
@@ -231,7 +257,7 @@ class MainWindow(QMainWindow):
             
             
     def close_related_tab(self):
-            print(f'!!!!!!現在格納されているリスト！！{self.tab_id_title_list}')
+            print(f'現在格納されているリストは，{self.tab_id_title_list}')
             current_index = self.tabs.currentIndex()
             delete_tab_index_list = []
 
@@ -266,20 +292,6 @@ class MainWindow(QMainWindow):
             print ("-------close_related_tab end--------")
             print(f"Current tab list: {self.tab_id_title_list}")
                 
-                
-
-
-        
-                
-                
-         
-    
-
-    # def add_new_tab(self):
-    #     self.addTab(f"New Tab {self.tabs.count() + 1}", f"This is new tab {self.tabs.count() + 1}")
-
-
-
 
     def prev_tab(self):
         current_index = self.tabs.currentIndex()
@@ -305,12 +317,7 @@ class MainWindow(QMainWindow):
         profile.clearAllVisitedLinks()  # すべての訪問リンクをクリア
         print("すべての訪問リンクがクリアされました。")
         
-        
-
-
-
-
-      
+       
 
     def add_new_tab(self, qurl=None, label="ブランク"):
         profile = QWebEngineProfile.defaultProfile()
@@ -325,7 +332,6 @@ class MainWindow(QMainWindow):
 
         browser = QWebEngineView()
        
-
         # WebChannelを設定する
         channel = QWebChannel()  # 新しいチャンネルを作成
         handler = LinkHandler()  # 新しいハンドラを作成
@@ -343,9 +349,6 @@ class MainWindow(QMainWindow):
         browser.setUrl(qurl)
 
 
-
-
-
         i = self.tabs.addTab(browser, label)
         print(f'{i}番目のタブを開いたよ')
         self.tabs.setCurrentIndex(i)
@@ -360,8 +363,6 @@ class MainWindow(QMainWindow):
         
         
         for tab_info in self.tab_id_title_list:
-            
-            
             if tab_info['id'] == i:
                 tab_info['title'] = new_title
                 found = True
@@ -398,8 +399,6 @@ class MainWindow(QMainWindow):
         print(f"Current tab list: {self.tab_id_title_list}")
 
         
-
-        
         
     def on_title_changed(self, new_title, i):
         self.update_star_icon()
@@ -414,22 +413,6 @@ class MainWindow(QMainWindow):
         print(f"Current tab list: {self.tab_id_title_list}")
                
     
-    
-
-        
-#そのタブのアイコンを押したら，dialogが出てきて（出てこなくてもいい），関連するタブを削除する
-
-    #my test code
-    def tab_id_print(self,i):
-        return 
-        print(f'now open tab is {i}')
-  
-    # タブを開く度に，リストに，辞書型で，タブのidとそのタブのタイトルを保存しておく関数
-    # def tab_id_save(self, i,browser, tab_id_list):
-    #         # Add the tab ID and title to the tab_id_list
-    #     tab_id = self.tabs.indexOf(browser)
-    #     tab_title = browser.page().title()
-    #     tab_id_list.append({tab_id: tab_title})
 
     def tab_open_doubleclick(self, i):
         if i == -1:
@@ -443,8 +426,6 @@ class MainWindow(QMainWindow):
         self.update_star_icon()
 
 
-
-
     def update_title(self, browser):
         if browser != self.tabs.currentWidget():
             return
@@ -453,8 +434,7 @@ class MainWindow(QMainWindow):
         formatted_title = title[:7] if len(title) > 7 else title.ljust(7)
         print(formatted_title)
         self.setWindowTitle("%s Goth" % formatted_title)
-        
-        
+    
         self.tabs.setTabText(self.tabs.currentIndex(), formatted_title)
         if title is not None:
             print(title)
@@ -515,10 +495,6 @@ class MainWindow(QMainWindow):
                     self.vertical_bar.removeAction(action)
                 self.load_shortcuts()
 
-    # def force_star(self):
-    #     current_tab = self.tabs.currentWidget()
-    #     if isinstance(current_tab, QWebEngineView):
-    #         self.star_button.setText("★")
 
     def add_shortcut(self):
         current_tab = self.tabs.currentWidget()
