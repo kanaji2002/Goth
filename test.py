@@ -1,5 +1,5 @@
-import os
 import sys
+import os
 import re
 import asyncio
 import aiohttp
@@ -15,14 +15,16 @@ import yt_dlp
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 from PySide6.QtCore import Qt, QPoint
 
- 
 
-#類似度
+#類似度を計算するためのモジュール
 from difflib import SequenceMatcher
 
-
+# htmlからpyhonにデータを渡すためのモジュール
 from PySide6.QtWebChannel import QWebChannel
 import sys
+
+#音楽を再生するためのモジュール
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 class LinkHandler(QObject):
     @Slot(str,str)
@@ -33,51 +35,16 @@ class LinkHandler(QObject):
         url = QUrl(url)
         window.add_pin_stop(url, name)
         window.add_new_tab(url, "New Tab")
-class AdblockX:
-    def __init__(self, page, adBlocker):
-        self.page = page
-        self.block_lists = []
-        self.tracker_lists = []
-        self.adBlocker = adBlocker
-        self.session = aiohttp.ClientSession()
 
-    async def fetch_lists(self, url):
-        try:
-            async with self.session.get(url) as response:
-                if response.status != 200:
-                    raise Exception(f"Failed to fetch lists: {response.status}")
-                return (await response.text()).split('\n')
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return []
+# リソースパスを解決する関数を追加
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
-    async def update_lists(self):
-        block_lists, tracker_lists = await asyncio.gather(
-            self.fetch_lists("https://easylist.to/easylist/easylist.txt"),
-            self.fetch_lists("https://easylist.to/easylist/easyprivacy.txt")
-        )
-        if block_lists and block_lists != self.block_lists:
-            self.block_lists = block_lists
-            await self.blockAds()
-        if tracker_lists and tracker_lists != self.tracker_lists:
-            self.tracker_lists = tracker_lists
-            await self.blockTrackers()
 
-    async def blockAds(self):
-        await self.adBlocker.setUrlFilterRules(self.block_lists)
 
-    async def blockTrackers(self):
-        await self.adBlocker.setUrlFilterRules(self.tracker_lists)
-
-    async def main(self):
-        await self.update_lists()
-
-    async def updateBlockedContent(self, event):
-        await self.update_lists()
         
-        
-
-
 
 class MainWindow(QMainWindow):
     # tab_id_title_list = []
@@ -103,7 +70,7 @@ class MainWindow(QMainWindow):
         self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.currentChanged.connect(self.current_tab_changed)
 
-        
+        self.resize(960, 540)
         
 
         self.tabs.setTabsClosable(True)
@@ -116,7 +83,7 @@ class MainWindow(QMainWindow):
 
            # ボタンを作成してタブバーの右上に配置
         self.add_tab_button = QPushButton("newタブ")
-        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/three.html'), 'Homepage')
+        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
         # self.showMaximized()
         # ボタンがクリックされたときに、新しいタブを開くように設定
         self.add_tab_button.clicked.connect(lambda: self.add_new_tab())
@@ -167,9 +134,60 @@ class MainWindow(QMainWindow):
         self.star_button.setStatusTip("Add shortcut to vertical bar")
         self.star_button.setCheckable(True)  # チェック可能に設定
         self.star_button.triggered.connect(self.toggle_star)
-        
         self.toolbar.addAction(self.star_button)
-        # self.toolbar.addAction(self.delete_star_button)
+
+        self.cl_cache_button = QAction("cache", self)
+        self.cl_cache_button.setStatusTip("clear cache")
+        self.cl_cache_button.triggered.connect(self.clear_cache)
+        self.toolbar.addAction(self.cl_cache_button)
+       
+        self.room2 = QAction("room2", self)
+        self.room2.setStatusTip("go to room2")
+        self.room2.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room2.html')))
+        self.toolbar.addAction(self.room2)
+
+        self.room3 = QAction("room3", self)
+        self.room3.setStatusTip("go to room3")
+        self.room3.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room3.html')))
+        self.toolbar.addAction(self.room3)
+
+        self.room4 = QAction("room4", self)
+        self.room4.setStatusTip("go to room4")
+        self.room4.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room4.html')))
+        self.toolbar.addAction(self.room4)
+
+        self.room5 = QAction("room5", self)
+        self.room5.setStatusTip("go to room5")
+        self.room5.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room5.html')))
+        self.toolbar.addAction(self.room5)
+
+        self.room6 = QAction("room6", self)
+        self.room6.setStatusTip("go to room6")
+        self.room6.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room6.html')))
+        self.toolbar.addAction(self.room6)
+
+        self.player = QMediaPlayer(self)
+        self.audio_output = QAudioOutput(self)
+        self.player.setAudioOutput(self.audio_output)
+
+        # self.play_button = QAction("Play music")
+        # self.play_button.setIcon(QIcon("parts/saisei.png"))
+        # self.play_button.setStatusTip("play music")
+        # self.play_button.triggered.connect(self.toggle_music)
+        # #self.play_button.clicked.connect(self.toggle_music)
+        # self.toolbar.addAction(self.play_button)
+
+
+        ## 実行ファイル用のリソースパスを解決する関数を追加
+        # 修正: リソースパス関数を使用して画像のパスを取得
+        self.play_button = QAction("Play music")
+        self.play_button.setIcon(QIcon(resource_path("parts/saisei.png")))
+        self.play_button.setStatusTip("play music")
+        self.play_button.triggered.connect(self.toggle_music)
+        self.toolbar.addAction(self.play_button)
+
+   
+
 
         home_btn.triggered.connect(self.navigate_home)
         navtb.addAction(home_btn)
@@ -193,9 +211,27 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
 
+
+
+        # ウィンドウアイコンの設定（アイコンファイルのパスを指定）
+        self.setWindowIcon(QIcon(resource_path("parts/icon.ico")))
+        
+
         
        
         """ initialize 終わり """
+
+
+    def toggle_music(self):
+        if self.player.playbackState() == QMediaPlayer.PlayingState:
+            self.player.pause()
+            self.play_button.setIcon(QIcon("parts/saisei.png"))
+        else:
+            # 音楽ファイルのURLを設定（ローカルファイルの場合は "file:///フルパス" の形式で指定）
+            self.player.setSource(QUrl("https://kanaji2002.github.io/Goth-toppage/mititeyuku_free.mp3"))
+            self.player.play()
+            self.play_button.setIcon(QIcon("parts/stop.png"))
+
 
 
     
@@ -252,7 +288,7 @@ class MainWindow(QMainWindow):
             
             
     def close_related_tab(self):
-            print(f'!!!!!!現在格納されているリスト！！{self.tab_id_title_list}')
+            print(f'現在格納されているリストは，{self.tab_id_title_list}')
             current_index = self.tabs.currentIndex()
             delete_tab_index_list = []
 
@@ -287,20 +323,6 @@ class MainWindow(QMainWindow):
             print ("-------close_related_tab end--------")
             print(f"Current tab list: {self.tab_id_title_list}")
                 
-                
-
-
-        
-                
-                
-         
-    
-
-    # def add_new_tab(self):
-    #     self.addTab(f"New Tab {self.tabs.count() + 1}", f"This is new tab {self.tabs.count() + 1}")
-
-
-
 
     def prev_tab(self):
         current_index = self.tabs.currentIndex()
@@ -312,20 +334,35 @@ class MainWindow(QMainWindow):
         if current_index < self.tabs.count() - 1:
             self.tabs.setCurrentIndex(current_index + 1)
 
-
-
-
-      
+    def clear_cache(self):
+        profile = QWebEngineProfile.defaultProfile()
+        
+        profile.clearHttpCache()  # HTTPキャッシュをクリア
+        print("HTTPキャッシュがクリアされました。")
+        
+        # すべてのクッキーを削除
+        cookie_store = profile.cookieStore()
+        cookie_store.deleteAllCookies()
+        print("すべてのクッキーが削除されました。")
+        
+        profile.clearAllVisitedLinks()  # すべての訪問リンクをクリア
+        print("すべての訪問リンクがクリアされました。")
+        
+       
 
     def add_new_tab(self, qurl=None, label="ブランク"):
+        profile = QWebEngineProfile.defaultProfile()
+        # profile.clearHttpCache()  # HTTPキャッシュをクリア  
+
+
         self.update_star_icon()
         if qurl is None:
-            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')    
+            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/room2.html')    
         elif isinstance(qurl, str):
             qurl = QUrl(qurl)  # 文字列からQUrlに変換する
 
         browser = QWebEngineView()
-
+       
         # WebChannelを設定する
         channel = QWebChannel()  # 新しいチャンネルを作成
         handler = LinkHandler()  # 新しいハンドラを作成
@@ -333,11 +370,14 @@ class MainWindow(QMainWindow):
         browser.page().setWebChannel(channel)  # 新しいブラウザページにチャンネルを設定
 
 
+        # ページのロードが完了したら、JavaScriptコードをインジェクトしてWebChannelを設定する
+        browser.page().loadFinished.connect(lambda: browser.page().runJavaScript('''
+            new QWebChannel(qt.webChannelTransport, function(channel) {
+                window.linkHandler = channel.objects.linkHandler;
+            });
+        '''))
         
         browser.setUrl(qurl)
-
-
-
 
 
         i = self.tabs.addTab(browser, label)
@@ -354,8 +394,6 @@ class MainWindow(QMainWindow):
         
         
         for tab_info in self.tab_id_title_list:
-            
-            
             if tab_info['id'] == i:
                 tab_info['title'] = new_title
                 found = True
@@ -406,22 +444,6 @@ class MainWindow(QMainWindow):
         print(f"Current tab list: {self.tab_id_title_list}")
                
     
-    
-
-        
-#そのタブのアイコンを押したら，dialogが出てきて（出てこなくてもいい），関連するタブを削除する
-
-    #my test code
-    def tab_id_print(self,i):
-        return 
-        print(f'now open tab is {i}')
-  
-    # タブを開く度に，リストに，辞書型で，タブのidとそのタブのタイトルを保存しておく関数
-    # def tab_id_save(self, i,browser, tab_id_list):
-    #         # Add the tab ID and title to the tab_id_list
-    #     tab_id = self.tabs.indexOf(browser)
-    #     tab_title = browser.page().title()
-    #     tab_id_list.append({tab_id: tab_title})
 
     def tab_open_doubleclick(self, i):
         if i == -1:
@@ -435,8 +457,6 @@ class MainWindow(QMainWindow):
         self.update_star_icon()
 
 
-
-
     def update_title(self, browser):
         if browser != self.tabs.currentWidget():
             return
@@ -445,8 +465,7 @@ class MainWindow(QMainWindow):
         formatted_title = title[:7] if len(title) > 7 else title.ljust(7)
         print(formatted_title)
         self.setWindowTitle("%s Goth" % formatted_title)
-        
-        
+    
         self.tabs.setTabText(self.tabs.currentIndex(), formatted_title)
         if title is not None:
             print(title)
@@ -455,7 +474,7 @@ class MainWindow(QMainWindow):
         
 
     def navigate_home(self):
-        self.tabs.currentWidget().setUrl(QUrl("https://kanaji2002.github.io/Goth-toppage/top_page.html"))
+        self.tabs.currentWidget().setUrl(QUrl("https://kanaji2002.github.io/Goth-toppage/room1.html"))
 
     def navigate_to_url(self):
         url = self.urlbar.text()
@@ -507,10 +526,6 @@ class MainWindow(QMainWindow):
                     self.vertical_bar.removeAction(action)
                 self.load_shortcuts()
 
-    # def force_star(self):
-    #     current_tab = self.tabs.currentWidget()
-    #     if isinstance(current_tab, QWebEngineView):
-    #         self.star_button.setText("★")
 
     def add_shortcut(self):
         current_tab = self.tabs.currentWidget()
@@ -687,6 +702,7 @@ class MainWindow(QMainWindow):
 
 app = QApplication(sys.argv)
 app.setApplicationName("Goth")
+app.setWindowIcon(QIcon(resource_path("parts/icon.ico"))) 
 window = MainWindow()
 window.create_database()
 # ページを描画
