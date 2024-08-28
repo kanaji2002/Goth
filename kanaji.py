@@ -148,6 +148,16 @@ class MainWindow(QMainWindow):
         self.room4.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room4.html')))
         self.toolbar.addAction(self.room4)
 
+        self.room5 = QAction("room5", self)
+        self.room5.setStatusTip("go to room5")
+        self.room5.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room5.html')))
+        self.toolbar.addAction(self.room5)
+
+        self.room6 = QAction("room6", self)
+        self.room6.setStatusTip("go to room6")
+        self.room6.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room6.html')))
+        self.toolbar.addAction(self.room6)
+
         self.player = QMediaPlayer(self)
         self.audio_output = QAudioOutput(self)
         self.player.setAudioOutput(self.audio_output)
