@@ -194,6 +194,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("")
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+
+
+
+        # ウィンドウアイコンの設定（アイコンファイルのパスを指定）
+        self.setWindowIcon(QIcon("parts/icon.ico"))
         
 
         
@@ -681,6 +686,7 @@ class MainWindow(QMainWindow):
 
 app = QApplication(sys.argv)
 app.setApplicationName("Goth")
+app.setWindowIcon(QIcon("parts/icon.ico"))
 window = MainWindow()
 window.create_database()
 # ページを描画
