@@ -33,49 +33,6 @@ class LinkHandler(QObject):
         url = QUrl(url)
         window.add_pin_stop(url, name)
         window.add_new_tab(url, "New Tab")
-class AdblockX:
-    def __init__(self, page, adBlocker):
-        self.page = page
-        self.block_lists = []
-        self.tracker_lists = []
-        self.adBlocker = adBlocker
-        self.session = aiohttp.ClientSession()
-
-    async def fetch_lists(self, url):
-        try:
-            async with self.session.get(url) as response:
-                if response.status != 200:
-                    raise Exception(f"Failed to fetch lists: {response.status}")
-                return (await response.text()).split('\n')
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return []
-
-    async def update_lists(self):
-        block_lists, tracker_lists = await asyncio.gather(
-            self.fetch_lists("https://easylist.to/easylist/easylist.txt"),
-            self.fetch_lists("https://easylist.to/easylist/easyprivacy.txt")
-        )
-        if block_lists and block_lists != self.block_lists:
-            self.block_lists = block_lists
-            await self.blockAds()
-        if tracker_lists and tracker_lists != self.tracker_lists:
-            self.tracker_lists = tracker_lists
-            await self.blockTrackers()
-
-    async def blockAds(self):
-        await self.adBlocker.setUrlFilterRules(self.block_lists)
-
-    async def blockTrackers(self):
-        await self.adBlocker.setUrlFilterRules(self.tracker_lists)
-
-    async def main(self):
-        await self.update_lists()
-
-    async def updateBlockedContent(self, event):
-        await self.update_lists()
-        
-        
 
 
 
@@ -103,7 +60,7 @@ class MainWindow(QMainWindow):
         self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.currentChanged.connect(self.current_tab_changed)
 
-        
+        self.resize(960, 540)
         
 
         self.tabs.setTabsClosable(True)
@@ -116,7 +73,7 @@ class MainWindow(QMainWindow):
 
            # ボタンを作成してタブバーの右上に配置
         self.add_tab_button = QPushButton("newタブ")
-        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/three.html'), 'Homepage')
+        self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html'), 'Homepage')
         # self.showMaximized()
         # ボタンがクリックされたときに、新しいタブを開くように設定
         self.add_tab_button.clicked.connect(lambda: self.add_new_tab())
@@ -167,9 +124,30 @@ class MainWindow(QMainWindow):
         self.star_button.setStatusTip("Add shortcut to vertical bar")
         self.star_button.setCheckable(True)  # チェック可能に設定
         self.star_button.triggered.connect(self.toggle_star)
-        
         self.toolbar.addAction(self.star_button)
-        # self.toolbar.addAction(self.delete_star_button)
+
+        self.cl_cache_button = QAction("cache", self)
+        self.cl_cache_button.setStatusTip("clear cache")
+        self.cl_cache_button.triggered.connect(self.clear_cache)
+        self.toolbar.addAction(self.cl_cache_button)
+       
+        self.room2 = QAction("room2", self)
+        self.room2.setStatusTip("go to room2")
+        self.room2.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room2.html')))
+        self.toolbar.addAction(self.room2)
+
+        self.room3 = QAction("room3", self)
+        self.room3.setStatusTip("go to room3")
+        self.room3.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room3.html')))
+        self.toolbar.addAction(self.room3)
+
+        self.room4 = QAction("room4", self)
+        self.room4.setStatusTip("go to room4")
+        self.room4.triggered.connect(lambda: self.add_new_tab(QUrl('https://kanaji2002.github.io/Goth-toppage/room4.html')))
+        self.toolbar.addAction(self.room4)
+
+        
+
 
         home_btn.triggered.connect(self.navigate_home)
         navtb.addAction(home_btn)
@@ -192,6 +170,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("")
         self.setStyleSheet("background-color: gray; color: white;")  # 背景色を黒に変更
         self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+        
 
         
        
@@ -312,19 +291,40 @@ class MainWindow(QMainWindow):
         if current_index < self.tabs.count() - 1:
             self.tabs.setCurrentIndex(current_index + 1)
 
+    def clear_cache(self):
+        profile = QWebEngineProfile.defaultProfile()
+        
+        profile.clearHttpCache()  # HTTPキャッシュをクリア
+        print("HTTPキャッシュがクリアされました。")
+        
+        # すべてのクッキーを削除
+        cookie_store = profile.cookieStore()
+        cookie_store.deleteAllCookies()
+        print("すべてのクッキーが削除されました。")
+        
+        profile.clearAllVisitedLinks()  # すべての訪問リンクをクリア
+        print("すべての訪問リンクがクリアされました。")
+        
+        
+
 
 
 
       
 
     def add_new_tab(self, qurl=None, label="ブランク"):
+        profile = QWebEngineProfile.defaultProfile()
+        # profile.clearHttpCache()  # HTTPキャッシュをクリア  
+
+
         self.update_star_icon()
         if qurl is None:
-            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/top_page.html')    
+            qurl = QUrl('https://kanaji2002.github.io/Goth-toppage/room2.html')    
         elif isinstance(qurl, str):
             qurl = QUrl(qurl)  # 文字列からQUrlに変換する
 
         browser = QWebEngineView()
+       
 
         # WebChannelを設定する
         channel = QWebChannel()  # 新しいチャンネルを作成
@@ -333,6 +333,12 @@ class MainWindow(QMainWindow):
         browser.page().setWebChannel(channel)  # 新しいブラウザページにチャンネルを設定
 
 
+        # ページのロードが完了したら、JavaScriptコードをインジェクトしてWebChannelを設定する
+        browser.page().loadFinished.connect(lambda: browser.page().runJavaScript('''
+            new QWebChannel(qt.webChannelTransport, function(channel) {
+                window.linkHandler = channel.objects.linkHandler;
+            });
+        '''))
         
         browser.setUrl(qurl)
 
@@ -390,6 +396,8 @@ class MainWindow(QMainWindow):
         
         print ("-------add_new_tab end--------")
         print(f"Current tab list: {self.tab_id_title_list}")
+
+        
 
         
         

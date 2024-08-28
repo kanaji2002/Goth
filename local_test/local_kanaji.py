@@ -119,7 +119,7 @@ class MainWindow(QMainWindow):
 
 
         # 現在のディレクトリ（スクリプトのあるディレクトリ）からの相対パスを取得
-        local_html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'three.html')
+        local_html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '/three.html')
         # QUrlオブジェクトに変換
         local_html_url = QUrl.fromLocalFile(local_html_path)
 
@@ -328,7 +328,12 @@ class MainWindow(QMainWindow):
     def add_new_tab(self, qurl=None, label="ブランク"):
         self.update_star_icon()
         if qurl is None:
-            qurl = QUrl.fromLocalFile('three.html')
+                  # 現在のディレクトリ（スクリプトのあるディレクトリ）からの相対パスを取得
+            # local_html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'three.html')
+            
+            # QUrlオブジェクトに変換
+            qurl = QUrl.fromLocalFile("three.html")
+            
         elif isinstance(qurl, str):
             qurl = QUrl(qurl)  # 文字列からQUrlに変換する
 
@@ -463,7 +468,13 @@ class MainWindow(QMainWindow):
         
 
     def navigate_home(self):
-        self.tabs.currentWidget().setUrl(QUrl("https://kanaji2002.github.io/Goth-toppage/top_page.html"))
+
+              # 現在のディレクトリ（スクリプトのあるディレクトリ）からの相対パスを取得
+        local_html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '/three.html')
+        # QUrlオブジェクトに変換
+        local_html_url = QUrl.fromLocalFile(local_html_path)
+
+        self.tabs.currentWidget().setUrl(local_html_url)
 
     def navigate_to_url(self):
         url = self.urlbar.text()
