@@ -34,6 +34,11 @@ This browser was born from the idea of building a comfortable space inside a PC.
  [ProtoPedia](https://protopedia.net/prototype/5976)
 
 
+
+## 実行方法
+こちらを見てください．
+https://github.com/kanaji2002/Goth_deploy
+
 ## 参考にした記事
 https://zenn.dev/silverbirder/articles/e10295948e17ca  
 https://zenn.dev/takeyan/articles/9296bc2af27fca  
